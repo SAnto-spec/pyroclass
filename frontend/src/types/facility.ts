@@ -6,6 +6,8 @@ export type FacilityType =
   | "lng_terminal"
   | "petrochemical";
 
+export type FacilityStatus = "high_attention" | "monitoring" | "nominal";
+
 export interface IndustrialFacility {
   id: string;
 
@@ -15,4 +17,8 @@ export interface IndustrialFacility {
 
   latitude: number;
   longitude: number;
+
+  region: string;
+  district?: string;
+  status: FacilityStatus;
 }

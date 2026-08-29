@@ -13,6 +13,8 @@ export interface NearbyFacility {
   distanceKm: number;
 }
 
+export type AnomalyStatus = "active" | "review" | "resolved";
+
 export interface ThermalAnomaly {
   id: string;
 
@@ -30,4 +32,7 @@ export interface ThermalAnomaly {
   persistenceScore: number;
 
   nearbyFacility?: NearbyFacility;
+
+  region: string;
+  status: AnomalyStatus;
 }

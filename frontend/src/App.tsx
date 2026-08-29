@@ -1,14 +1,24 @@
-import "./App.css";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { DashboardLayout } from "./components/layout/DashboardLayout";
+import { Dashboard } from "./pages/Dashboard";
+import { Anomalies } from "./pages/Anomalies";
+import { Facilities } from "./pages/Facilities";
+import { Sources } from "./pages/Sources";
+import { Alerts } from "./pages/Alerts";
 
 function App() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-8">
-      <h1 className="text-3xl font-bold">Thermal Intelligence</h1>
-
-      <p className="mt-2 text-slate-400">
-        Industrial thermal anomaly monitoring
-      </p>
-    </div>
+    <Routes>
+      <Route element={<DashboardLayout />}>
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="anomalies" element={<Anomalies />} />
+        <Route path="facilities" element={<Facilities />} />
+        <Route path="sources" element={<Sources />} />
+        <Route path="alerts" element={<Alerts />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Route>
+    </Routes>
   );
 }
 
