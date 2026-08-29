@@ -1,3 +1,9 @@
-fastapi==0.109.2
-uvicorn[standard]==0.27.1
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+sqlalchemy==2.0.51
+geoalchemy2==0.20.0
 psycopg2-binary==2.9.9
+pydantic==2.12.0
+requests==2.34.0
+python-dotenv==1.0.1
+apscheduler==3.11.3
