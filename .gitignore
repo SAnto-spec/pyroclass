@@ -1,0 +1,100 @@
+# ==============================
+# PyroClass .gitignore
+# ==============================
+
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# ---------- Environment / Secrets ----------
+.env
+.env.*
+!.env.example
+
+# ---------- Testing / Coverage ----------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# ---------- Build / Packaging ----------
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ---------- IDE / Editors ----------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------- Jupyter ----------
+.ipynb_checkpoints/
+
+# ---------- Logs ----------
+*.log
+logs/
+
+# ---------- Temporary files ----------
+*.tmp
+*.temp
+
+# ---------- Node / React ----------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# ---------- Frontend builds ----------
+frontend/dist/
+frontend/build/
+.next/
+.nuxt/
+
+# ---------- ML / Generated data ----------
+models/
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+*.onnx
+
+# ---------- Large datasets ----------
+data/
+datasets/
+*.csv
+*.parquet
+*.tif
+*.tiff
+*.jp2
+*.nc
+
+# ---------- Docker ----------
+.docker/
+
+# ---------- Local database / storage ----------
+postgres_data/
+*.sqlite
+*.sqlite3
+
+# ---------- PyroClass local files ----------
+uploads/
+outputs/
+cache/
