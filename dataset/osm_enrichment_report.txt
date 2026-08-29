@@ -1,0 +1,35 @@
+PYROCLASS OSM ENRICHMENT REPORT
+======================================================================
+
+Prototype sites: 20
+Search radius: 1500 metres
+
+Sites overlapping industrial/quarry polygons: 0
+Sites with nearby facilities: 14
+
+CONTEXT LEVELS:
+  low: 10
+  none: 10
+
+SITE RESULTS:
+case_id             case_type                   nearest_facility nearest_facility_type  nearest_facility_distance_m  industrial_polygon_overlap  industrial_context_score industrial_context_level
+CASE_01            persistent                   Unnamed facility                mining                      1309.92                       False                      0.25                      low
+CASE_02            persistent       Raigarh Jindal power station           power_plant                       806.14                       False                      0.25                      low
+CASE_03            persistent                 Lingaraj Coal Mine         quarry_mining                      1096.08                       False                      0.25                      low
+CASE_04            persistent                Chirimiri Coal Mine         quarry_mining                       458.43                       False                      0.35                      low
+CASE_05            persistent Jojobera Tata Unit 6 Power Station           power_plant                      1115.12                       False                      0.25                      low
+CASE_06            persistent   ArcelorMittal Nippon Steel India           steel_metal                      1420.62                       False                      0.25                      low
+CASE_07            persistent                               None                  None                          NaN                       False                      0.00                     none
+CASE_08            persistent                   Ashoka Coal Mine         quarry_mining                      2690.28                       False                      0.15                     none
+CASE_09            persistent                   Unnamed facility   industrial_facility                       556.13                       False                      0.35                      low
+CASE_10            persistent                   Unnamed facility           power_plant                       559.48                       False                      0.35                      low
+CASE_11                 spike                    Chhal Coal Mine         quarry_mining                      1556.89                       False                      0.15                     none
+CASE_12                 spike                               None                  None                          NaN                       False                      0.00                     none
+CASE_13                 spike                               None                  None                          NaN                       False                      0.00                     none
+CASE_14                 spike              Tetariakhar Coal Mine         quarry_mining                       487.59                       False                      0.35                      low
+CASE_15                 spike                Block - B coal mine         quarry_mining                      2535.74                       False                      0.15                     none
+CASE_16                 spike                               None                  None                          NaN                       False                      0.00                     none
+CASE_17 vegetation_comparison                     Dudhichua Mine         quarry_mining                      2262.49                       False                      0.15                     none
+CASE_18 vegetation_comparison     Gondegaon-Ghatrohana Coal Mine         quarry_mining                      1341.51                       False                      0.25                      low
+CASE_19 vegetation_comparison                               None                  None                          NaN                       False                      0.00                     none
+CASE_20 vegetation_comparison                               None                  None                          NaN                       False                      0.00                     none
