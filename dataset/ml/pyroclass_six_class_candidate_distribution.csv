@@ -1,0 +1,7 @@
+target_class,all_candidates,high_confidence,status
+industrial_persistent,1806,1806,AVAILABLE
+industrial_spike,145,145,AVAILABLE
+forest_fire,15000,0,MISSING
+ag_burning,0,0,MISSING
+non_industrial,14283,2007,AVAILABLE
+unknown,9346,0,MISSING
