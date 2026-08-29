@@ -64,7 +64,11 @@ export function Sources() {
           <SourceTable sources={filtered} selectedId={effectiveId} onSelect={setSelectedId} />
         </div>
         <div className="flex min-w-0 flex-col gap-4">
-          <MapContainer />
+          <MapContainer
+            sources={filtered}
+            selectedSourceId={effectiveId}
+            onSourceSelect={setSelectedId}
+          />
           <SourceDetailPanel source={selected ?? null} onClose={() => setSelectedId(null)} />
         </div>
       </div>

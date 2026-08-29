@@ -66,7 +66,11 @@ export function Anomalies() {
           <AnomalyTable anomalies={filtered} selectedId={effectiveSelectedId} onSelect={setSelectedId} />
         </div>
         <div className="flex min-w-0 flex-col gap-4">
-          <MapContainer />
+          <MapContainer
+            anomalies={filtered}
+            selectedAnomalyId={effectiveSelectedId}
+            onAnomalySelect={setSelectedId}
+          />
           <AnomalyDetailPanel anomaly={selected ?? null} onClose={() => setSelectedId(null)} />
         </div>
       </div>
