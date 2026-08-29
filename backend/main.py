@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 
+from routes.hotspots import router as hotspots_router
+
+
 app = FastAPI(
     title="PyroClass API",
     version="0.1.0"
@@ -19,3 +22,6 @@ def health():
     return {
         "status": "healthy"
     }
+
+
+app.include_router(hotspots_router)
