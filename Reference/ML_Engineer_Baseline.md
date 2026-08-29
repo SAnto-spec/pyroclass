@@ -122,18 +122,27 @@ The ML system is NOT simply a fire detector. It must answer five questions for e
 
 # 3. Classification Taxonomy
 
-## 3.1 Canonical six-class prototype taxonomy
+## 3.1 Classification Taxonomy
 
-**PROJECT REQUIREMENT** (from canonical baseline §3.3, §32):
+**PROTOTYPE BASELINE (CURRENT):**
 
-| ID | Machine Label | Display Name | Meaning |
+This prototype model trains on **3 classes only** due to available labeled data:
+
+| ID | Machine Label | Display Name | Status |
 |---|---|---|---|
-| 0 | `industrial_persistent` | Normal Persistent Industrial | Known or strongly inferred persistent industrial thermal source operating near its historical baseline |
-| 1 | `industrial_spike` | Industrial Spike / Anomaly | Industrial-associated hotspot showing significant abnormal deviation from its historical thermal baseline |
-| 2 | `non_industrial` | Non-Industrial Thermal Activity | Thermal activity not confidently attributable to industrial persistence, forest/vegetation fire, or agricultural burning |
-| 3 | `forest_fire` | Forest / Vegetation Fire | Thermal event consistent with vegetation/forest context and transient fire behavior |
-| 4 | `ag_burning` | Agricultural Burning | Thermal event consistent with cropland/agricultural context and seasonal/transient burning behavior |
-| 5 | `unknown` | Unknown / Ambiguous | Insufficient or conflicting evidence for a confident semantic class |
+| 0 | `forest_fire` | Forest / Vegetation Fire | ✅ INCLUDED (10,081 samples) |
+| 1 | `non_industrial` | Non-Industrial Thermal Activity | ✅ INCLUDED (9,925 samples) |
+| 2 | `unknown` | Unknown / Ambiguous | ✅ INCLUDED (7,824 samples) |
+
+**FULL SIX-CLASS TAXONOMY (LONG-TERM GOAL):**
+
+These classes have 0 training examples in the current prototype and are NOT included:
+
+| ID | Machine Label | Display Name | Status |
+|---|---|---|---|
+| 3 | `industrial_persistent` | Normal Persistent Industrial | ❌ NOT IN PROTOTYPE (0 samples) |
+| 4 | `industrial_spike` | Industrial Spike / Anomaly | ❌ NOT IN PROTOTYPE (0 samples) |
+| 5 | `ag_burning` | Agricultural Burning | ❌ NOT IN PROTOTYPE (0 samples) |
 
 ### 3.1.1 The most critical distinction
 
@@ -173,21 +182,45 @@ This is a conceptual framework. The actual implementation uses a direct multicla
 
 ## 3.2 Mandatory taxonomy rules
 
-**PROJECT REQUIREMENT** (from canonical baseline §32):
+**PROTOTYPE BASELINE:** This prototype only trains on 3 classes (forest_fire, non_industrial, unknown).
+
+**For Future 6-Class Implementation:**
 
 1. Keep these six categories consistent across training, label mapping, backend APIs, database values, and frontend display.
-2. Do NOT collapse `industrial_persistent` and `industrial_spike` into one class; their distinction is central to the prototype.
+2. Do NOT collapse `industrial_persistent` and `industrial_spike` into one class; their distinction is central to the full taxonomy.
 3. Do NOT force low-confidence predictions into a specific category.
 4. Keep `classification`, `confidence`, and `priority/anomaly score` as separate outputs.
 5. Version the taxonomy and label mapping if class definitions change.
 
 ## 3.3 Canonical label mapping file
 
+**PROTOTYPE BASELINE (3 classes):**
+
+```json
+{
+  "version": "prototype-baseline-v1",
+  "num_classes": 3,
+  "classes": {
+    "forest_fire": 0,
+    "non_industrial": 1,
+    "unknown": 2
+  },
+  "display_names": {
+    "forest_fire": "Forest / Vegetation Fire",
+    "non_industrial": "Non-Industrial Thermal Activity",
+    "unknown": "Unknown / Ambiguous"
+  }
+}
+```
+
+**FULL 6-CLASS TAXONOMY (Future):**
+
 The label mapping must be stored in a single versioned file, never hard-coded in multiple places.
 
 ```json
 {
   "version": "taxonomy-v1",
+  "num_classes": 6,
   "classes": {
     "industrial_persistent": 0,
     "industrial_spike": 1,
