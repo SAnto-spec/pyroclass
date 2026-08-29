@@ -79,7 +79,6 @@ models/
 # ---------- Large datasets ----------
 data/
 datasets/
-*.csv
 *.parquet
 *.tif
 *.tiff
