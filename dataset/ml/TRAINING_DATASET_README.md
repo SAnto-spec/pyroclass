@@ -36,12 +36,18 @@ initial XGBoost experiment.
 
 ## Target Classes
 
+**THIS PROTOTYPE TRAINS ON 3 CLASSES:**
+
+- forest_fire
+- non_industrial
+- unknown
+
+**NOT INCLUDED (0 training examples):**
 - industrial_persistent
 - industrial_spike
-- non_industrial
-- forest_fire
 - ag_burning
-- unknown
+
+The 6-class taxonomy remains the long-term goal, but this baseline prototype only has sufficient labeled data for 3 classes.
 
 ## Prototype Geographic Context
 
