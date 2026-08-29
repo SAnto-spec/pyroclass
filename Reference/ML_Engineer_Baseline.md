@@ -14,7 +14,8 @@
 
 ---
 
-# Table of Contents
+# Table of Contentsd
+
 
 1. [Role Definition and Scope](#1-role-definition-and-scope)
 2. [Core Problem Statement](#2-core-problem-statement)
