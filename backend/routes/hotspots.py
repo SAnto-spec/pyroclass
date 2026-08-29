@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from database.connection import get_connection
 
 
@@ -126,6 +126,8 @@ def get_hotspots():
         dict(zip(columns, row))
         for row in rows
     ]
+
+
 @router.get("/{hotspot_id}")
 def get_hotspot(hotspot_id: int):
     conn = get_connection()
@@ -194,10 +196,7 @@ def get_hotspot(hotspot_id: int):
     conn.close()
 
     if row is None:
-        return {
-            "error": "Hotspot not found",
-            "hotspot_id": hotspot_id
-        }
+        raise HTTPException(status_code=404, detail=f"Hotspot {hotspot_id} not found")
 
     columns = [
         "hotspot_id",
@@ -251,6 +250,8 @@ def get_hotspot(hotspot_id: int):
     ]
 
     return dict(zip(columns, row))
+
+
 @router.get("/{hotspot_id}/context")
 def get_hotspot_context(hotspot_id: int):
     conn = get_connection()
@@ -300,10 +301,7 @@ def get_hotspot_context(hotspot_id: int):
     conn.close()
 
     if row is None:
-        return {
-            "error": "Hotspot not found",
-            "hotspot_id": hotspot_id
-        }
+        raise HTTPException(status_code=404, detail=f"Hotspot {hotspot_id} not found")
 
     columns = [
         "case_id",
@@ -338,6 +336,8 @@ def get_hotspot_context(hotspot_id: int):
     ]
 
     return dict(zip(columns, row))
+
+
 @router.get("/{hotspot_id}/features")
 def get_hotspot_features(hotspot_id: int):
     conn = get_connection()
@@ -410,10 +410,7 @@ def get_hotspot_features(hotspot_id: int):
     conn.close()
 
     if row is None:
-        return {
-            "error": "Hotspot not found",
-            "hotspot_id": hotspot_id
-        }
+        raise HTTPException(status_code=404, detail=f"Hotspot {hotspot_id} not found")
 
     columns = [
         "case_id",
@@ -467,5 +464,5 @@ def get_hotspot_features(hotspot_id: int):
 
     return {
         "hotspot_id": hotspot_id,
-        "features": dict(zip(columns, row))
+        "features": dict(zip(columns, row)),
     }

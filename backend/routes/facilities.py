@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from database.connection import get_connection
 
 router = APIRouter(prefix="/facilities", tags=["Facilities"])
@@ -27,5 +27,5 @@ def get_facility(facility_id: int):
     cur.close()
     conn.close()
     if row is None:
-        return {"error": "Facility not found", "facility_id": facility_id}
+        raise HTTPException(status_code=404, detail=f"Facility {facility_id} not found")
     return dict(zip(columns, row))
