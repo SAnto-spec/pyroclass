@@ -2907,3 +2907,55 @@ else:
 **END OF DOCUMENT**
 
 *This document is the canonical ML engineering baseline for SIH26162 PyroClass until superseded by an explicitly versioned update. Future coding AIs must treat this as the primary implementation context for the ML component.*
+
+
+
+
+PyroClass — ML Engineer Backend Handoff
+Purpose
+This document describes the backend interface currently available to the ML engineer for building and integrating the PyroClass classification model. The backend provides cleaned hotspot data, geospatial context, and a standardized feature endpoint. The ML model itself is outside this backend component.
+1. Current Architecture
+Final cleaned dataset → ingestion layer → PostgreSQL/PostGIS → FastAPI → ML feature endpoint → ML classification model
+2. Backend Endpoints
+•	GET /hotspots/ — Returns all ingested hotspot records with the full cleaned dataset fields exposed by the API.
+•	GET /hotspots/{hotspot_id} — Returns the complete record for one hotspot.
+•	GET /hotspots/{hotspot_id}/context — Returns geospatial/context evidence for one hotspot.
+•	GET /hotspots/{hotspot_id}/features — Returns the standardized feature vector intended as ML model input.
+3. ML Feature Contract
+The /features endpoint currently exposes these backend-provided feature groups. The ML engineer determines model-specific preprocessing, feature selection, encoding, and algorithm.
+•	Thermal / activity
+n, active_days, mean_frp, median_frp, max_frp
+•	Historical
+year_2022, year_2023, year_2024, historical_data_available
+•	Anomaly
+base_monthly, cur_monthly, count_ratio, p95_ratio, spike_score
+•	Spatial / context
+context_type, context_confidence, facility_type, facility_distance_m, industrial_context_score, mining_context_score, industrial_polygon_overlap_osm, mining_polygon_overlap, forest_polygon_overlap, agriculture_polygon_overlap, industrial_features_found, mining_features_found, forest_features_found, agriculture_features_found, nearest_industrial_type, nearest_industrial_distance_m, nearest_mining_distance_m, vegetation_context, agriculture_context, has_osm_context, specific_facility_identified, geospatial_review_status
+4. Example Feature Request
+GET http://localhost:8000/hotspots/1/features
+The response contains hotspot_id and a features object containing the fields listed above.
+5. Verified Spatial Example
+CASE_01 was verified through the backend as mining/quarry context, with mining_polygon_overlap = true and geospatial_review_status = mining_quarry_candidate. This is geospatial evidence from the cleaned dataset, not an ML prediction.
+6. Expected ML Output
+The existing PostgreSQL classifications table is designed to store model results with:
+•	classification
+•	confidence
+•	anomaly_score
+•	explanation
+•	model_version
+•	classified_at
+•	facility_id
+The backend currently does not claim these values are produced by an ML model; they are the planned storage fields for classification results.
+7. Integration Boundary
+Backend/System Architect: provide reliable hotspot data, geospatial context, and the feature API. ML Engineer: build/train/evaluate the classifier, determine preprocessing and feature usage, and produce the prediction output.
+8. Important Notes
+•	The final cleaned CSV is the source dataset used for ingestion.
+•	20 hotspot records have been successfully loaded into PostgreSQL/PostGIS.
+•	The backend uses the Docker PostgreSQL service name 'postgres' for container-to-container access.
+•	The /features endpoint is a data handoff interface, not the ML model.
+•	Do not treat CASE_01 values as model predictions.
+•	If additional ML features are required, coordinate with the backend/system architect before changing the API contract.
+9. Repository / Handoff Status
+The backend integration has been committed and pushed to the shared main branch. It includes the database connection layer, dataset ingestion, hotspot routes, PostGIS schema, and Docker integration.
+Handoff status: READY FOR ML ENGINEER INTEGRATION
+
