@@ -36,12 +36,12 @@ initial XGBoost experiment.
 
 ## Target Classes
 
-- normal_persistent_industrial
-- industrial_spike_anomaly
-- non_industrial_thermal_activity
-- forest_vegetation_fire
-- agricultural_burning
-- unknown_ambiguous
+- industrial_persistent
+- industrial_spike
+- non_industrial
+- forest_fire
+- ag_burning
+- unknown
 
 ## Prototype Geographic Context
 

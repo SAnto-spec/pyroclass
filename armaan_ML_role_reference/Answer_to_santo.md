@@ -85,12 +85,12 @@ industrial_facility_count_2km, industrial_facility_count_5km
 #### CATEGORY 7: Target Class Label (1 MISSING - THE BLOCKER) ❌❌❌
 ```
 target_class = one of:
-  - normal_persistent_industrial
-  - industrial_spike_anomaly
-  - non_industrial_thermal_activity
-  - forest_vegetation_fire
-  - agricultural_burning
-  - unknown_ambiguous
+  - industrial_persistent
+  - industrial_spike
+  - non_industrial
+  - forest_fire
+  - ag_burning
+  - unknown
 
 ↳ Your CSV has: case_type (persistent/spike/vegetation_comparison)
 ↳ Problem: case_type is PRELIMINARY and does NOT map 1:1 to 6-class taxonomy
@@ -255,13 +255,13 @@ for hotspot in df:
     if (hotspot.industrial_context_score > 0.7 and 
         hotspot.active_days_90d > 15 and 
         hotspot.frp_z_score < 2.0):
-        candidate_class = 'normal_persistent_industrial'
+        candidate_class = 'industrial_persistent'
     elif (hotspot.industrial_context_score > 0.7 and 
           hotspot.frp_z_score > 3.0):
-        candidate_class = 'industrial_spike_anomaly'
+        candidate_class = 'industrial_spike'
     # ... more rules
     else:
-        candidate_class = 'unknown_ambiguous'
+        candidate_class = 'unknown'
 
 # Manually verify 500-1000 samples
 # Refine rules

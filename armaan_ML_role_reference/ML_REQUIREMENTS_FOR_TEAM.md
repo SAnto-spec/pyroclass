@@ -171,12 +171,12 @@ Your 20-site CSV has `case_type`:
 
 | 6-Class Label | Meaning | How to Identify |
 |---|---|---|
-| `normal_persistent_industrial` | Industrial heat, baseline behavior | High industrial context + Low anomaly score + High persistence |
-| `industrial_spike_anomaly` | Industrial heat, abnormal spike | High industrial context + HIGH anomaly score + Recent escalation |
-| `non_industrial_thermal_activity` | Some thermal source, not industrial/forest/agriculture | Low industrial context + Not forest/crop context |
-| `forest_vegetation_fire` | Forest/vegetation fire | High forest_polygon_overlap + Transient behavior |
-| `agricultural_burning` | Agricultural burning | High agriculture_polygon_overlap + Cropland context |
-| `unknown_ambiguous` | Insufficient evidence | Low confidence or conflicting context |
+| `industrial_persistent` | Industrial heat, baseline behavior | High industrial context + Low anomaly score + High persistence |
+| `industrial_spike` | Industrial heat, abnormal spike | High industrial context + HIGH anomaly score + Recent escalation |
+| `non_industrial` | Some thermal source, not industrial/forest/agriculture | Low industrial context + Not forest/crop context |
+| `forest_fire` | Forest/vegetation fire | High forest_polygon_overlap + Transient behavior |
+| `ag_burning` | Agricultural burning | High agriculture_polygon_overlap + Cropland context |
+| `unknown` | Insufficient evidence | Low confidence or conflicting context |
 
 ### Label Construction Strategy (From Baseline § 10)
 
@@ -185,11 +185,11 @@ Raw FIRMS hotspots
     ↓
 Apply candidate-generation RULES:
     - If: industrial_context_score > 0.7 AND active_days_90d > 15 AND frp_z_score < 2.0
-      → Candidate: normal_persistent_industrial
+      → Candidate: industrial_persistent
     - If: industrial_context_score > 0.7 AND frp_z_score > 3.0 AND has_history_30d
-      → Candidate: industrial_spike_anomaly
+      → Candidate: industrial_spike
     - If: forest_polygon_overlap AND low industrial_context_score AND transient
-      → Candidate: forest_vegetation_fire
+      → Candidate: forest_fire
     - Etc.
     ↓
 Manual verification of representative samples
@@ -299,7 +299,7 @@ is_bare_land = land_cover_class in [60, 90, 100]
 2. Manually verify representative samples (500-1000 hotspots)
 3. Use verified labels to refine rules
 4. Apply refined rules to entire dataset
-5. For ambiguous cases, assign unknown_ambiguous
+5. For ambiguous cases, assign unknown
 ```
 
 **Create**: `labeled_firms_training.csv` with columns:
@@ -454,15 +454,15 @@ for idx, row in df.iterrows():
     if (row['industrial_context_score'] > 0.7 and 
         row['active_days_90d'] > 15 and 
         row['frp_z_score'] < 2.0):
-        candidate_class = 'normal_persistent_industrial'
+        candidate_class = 'industrial_persistent'
     elif (row['industrial_context_score'] > 0.7 and 
           row['frp_z_score'] > 3.0):
-        candidate_class = 'industrial_spike_anomaly'
+        candidate_class = 'industrial_spike'
     elif row['is_forest_cover'] and row['industrial_context_score'] < 0.3:
-        candidate_class = 'forest_vegetation_fire'
+        candidate_class = 'forest_fire'
     # ... more rules
     else:
-        candidate_class = 'unknown_ambiguous'
+        candidate_class = 'unknown'
 ```
 
 Sub-task 4b: Manual Verification

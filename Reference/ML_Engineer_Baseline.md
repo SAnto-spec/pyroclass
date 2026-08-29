@@ -104,10 +104,10 @@ The ML system is NOT simply a fire detector. It must answer five questions for e
 | # | Question | Output |
 |---|---|---|
 | 1 | What type of thermal event is this? | `predicted_class` (one of six categories) |
-| 2 | Is an industrial-associated thermal event normal or abnormal? | Distinction between `normal_persistent_industrial` and `industrial_spike_anomaly` |
+| 2 | Is an industrial-associated thermal event normal or abnormal? | Distinction between `industrial_persistent` and `industrial_spike` |
 | 3 | How confident is the model? | `confidence` (float 0–1) + `class_probabilities` (dict) |
 | 4 | Why did the model make this prediction? | SHAP-based `top_explanatory_features` |
-| 5 | When should the system refuse to classify? | `unknown_ambiguous` assignment via post-processing rules |
+| 5 | When should the system refuse to classify? | `unknown` assignment via post-processing rules |
 
 ## 2.2 What the ML system must NOT do
 
@@ -128,17 +128,17 @@ The ML system is NOT simply a fire detector. It must answer five questions for e
 
 | ID | Machine Label | Display Name | Meaning |
 |---|---|---|---|
-| 0 | `normal_persistent_industrial` | Normal Persistent Industrial | Known or strongly inferred persistent industrial thermal source operating near its historical baseline |
-| 1 | `industrial_spike_anomaly` | Industrial Spike / Anomaly | Industrial-associated hotspot showing significant abnormal deviation from its historical thermal baseline |
-| 2 | `non_industrial_thermal_activity` | Non-Industrial Thermal Activity | Thermal activity not confidently attributable to industrial persistence, forest/vegetation fire, or agricultural burning |
-| 3 | `forest_vegetation_fire` | Forest / Vegetation Fire | Thermal event consistent with vegetation/forest context and transient fire behavior |
-| 4 | `agricultural_burning` | Agricultural Burning | Thermal event consistent with cropland/agricultural context and seasonal/transient burning behavior |
-| 5 | `unknown_ambiguous` | Unknown / Ambiguous | Insufficient or conflicting evidence for a confident semantic class |
+| 0 | `industrial_persistent` | Normal Persistent Industrial | Known or strongly inferred persistent industrial thermal source operating near its historical baseline |
+| 1 | `industrial_spike` | Industrial Spike / Anomaly | Industrial-associated hotspot showing significant abnormal deviation from its historical thermal baseline |
+| 2 | `non_industrial` | Non-Industrial Thermal Activity | Thermal activity not confidently attributable to industrial persistence, forest/vegetation fire, or agricultural burning |
+| 3 | `forest_fire` | Forest / Vegetation Fire | Thermal event consistent with vegetation/forest context and transient fire behavior |
+| 4 | `ag_burning` | Agricultural Burning | Thermal event consistent with cropland/agricultural context and seasonal/transient burning behavior |
+| 5 | `unknown` | Unknown / Ambiguous | Insufficient or conflicting evidence for a confident semantic class |
 
 ### 3.1.1 The most critical distinction
 
 ```text
-normal_persistent_industrial  ≠  industrial_spike_anomaly
+industrial_persistent  ≠  industrial_spike
 ```
 
 A persistent industrial thermal source operating near its expected baseline should NOT be flagged as an emergency or anomaly. The system must use historical behavior, FRP deviation, and contextual information to separate normal from abnormal industrial thermal activity.
@@ -176,7 +176,7 @@ This is a conceptual framework. The actual implementation uses a direct multicla
 **PROJECT REQUIREMENT** (from canonical baseline §32):
 
 1. Keep these six categories consistent across training, label mapping, backend APIs, database values, and frontend display.
-2. Do NOT collapse `normal_persistent_industrial` and `industrial_spike_anomaly` into one class; their distinction is central to the prototype.
+2. Do NOT collapse `industrial_persistent` and `industrial_spike` into one class; their distinction is central to the prototype.
 3. Do NOT force low-confidence predictions into a specific category.
 4. Keep `classification`, `confidence`, and `priority/anomaly score` as separate outputs.
 5. Version the taxonomy and label mapping if class definitions change.
@@ -189,20 +189,20 @@ The label mapping must be stored in a single versioned file, never hard-coded in
 {
   "version": "taxonomy-v1",
   "classes": {
-    "normal_persistent_industrial": 0,
-    "industrial_spike_anomaly": 1,
-    "non_industrial_thermal_activity": 2,
-    "forest_vegetation_fire": 3,
-    "agricultural_burning": 4,
-    "unknown_ambiguous": 5
+    "industrial_persistent": 0,
+    "industrial_spike": 1,
+    "non_industrial": 2,
+    "forest_fire": 3,
+    "ag_burning": 4,
+    "unknown": 5
   },
   "display_names": {
-    "normal_persistent_industrial": "Normal Persistent Industrial",
-    "industrial_spike_anomaly": "Industrial Spike / Anomaly",
-    "non_industrial_thermal_activity": "Non-Industrial Thermal Activity",
-    "forest_vegetation_fire": "Forest / Vegetation Fire",
-    "agricultural_burning": "Agricultural Burning",
-    "unknown_ambiguous": "Unknown / Ambiguous"
+    "industrial_persistent": "Normal Persistent Industrial",
+    "industrial_spike": "Industrial Spike / Anomaly",
+    "non_industrial": "Non-Industrial Thermal Activity",
+    "forest_fire": "Forest / Vegetation Fire",
+    "ag_burning": "Agricultural Burning",
+    "unknown": "Unknown / Ambiguous"
   },
   "num_classes": 6
 }
@@ -1230,37 +1230,37 @@ Step 10: Freeze model version
   "macro_recall": 0.0,
   "macro_f1": 0.0,
   "per_class": {
-    "normal_persistent_industrial": {
+    "industrial_persistent": {
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
       "support": 0
     },
-    "industrial_spike_anomaly": {
+    "industrial_spike": {
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
       "support": 0
     },
-    "non_industrial_thermal_activity": {
+    "non_industrial": {
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
       "support": 0
     },
-    "forest_vegetation_fire": {
+    "forest_fire": {
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
       "support": 0
     },
-    "agricultural_burning": {
+    "ag_burning": {
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
       "support": 0
     },
-    "unknown_ambiguous": {
+    "unknown": {
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
@@ -1279,9 +1279,9 @@ Step 10: Freeze model version
 
 Inspect confusion between:
 
-- `industrial_spike_anomaly` vs `normal_persistent_industrial` (most critical distinction)
-- `forest_vegetation_fire` vs `agricultural_burning`
-- `non_industrial_thermal_activity` vs `unknown_ambiguous`
+- `industrial_spike` vs `industrial_persistent` (most critical distinction)
+- `forest_fire` vs `ag_burning`
+- `non_industrial` vs `unknown`
 
 Do NOT jump directly into hyperparameter tuning before understanding errors.
 
@@ -1299,9 +1299,9 @@ The system must be allowed to say: "The available evidence is insufficient to cl
 
 ## 14.2 Post-processing strategy
 
-The `unknown_ambiguous` class is assigned through a combination of:
+The `unknown` class is assigned through a combination of:
 
-1. **Model prediction** — XGBoost may directly predict `unknown_ambiguous` as the top class
+1. **Model prediction** — XGBoost may directly predict `unknown` as the top class
 2. **Post-processing rules** — override model prediction when confidence is too low
 
 ### Post-processing logic
@@ -1326,12 +1326,12 @@ def apply_uncertainty_logic(probabilities, class_names):
     unknown_reason = None
 
     if top_prob < CONFIDENCE_THRESHOLD:
-        final_class = "unknown_ambiguous"
+        final_class = "unknown"
         confidence = top_prob
         unknown_reason = f"max_probability ({top_prob:.3f}) below threshold ({CONFIDENCE_THRESHOLD})"
 
     elif (top_prob - second_prob) < AMBIGUITY_MARGIN:
-        final_class = "unknown_ambiguous"
+        final_class = "unknown"
         confidence = top_prob
         second_class = class_names[sorted_indices[1]]
         unknown_reason = (
@@ -1374,7 +1374,7 @@ The thresholds `CONFIDENCE_THRESHOLD` and `AMBIGUITY_MARGIN` must NOT be arbitra
 
 1. Selected using the validation set
 2. Evaluated for their impact on:
-   - How many predictions are reclassified as `unknown_ambiguous`
+   - How many predictions are reclassified as `unknown`
    - Whether genuinely ambiguous cases are caught
    - Whether confident correct predictions are not unnecessarily overridden
 3. Stored in configuration (`configs/training_config.yaml`)
@@ -1395,7 +1395,7 @@ These are **NOT the same thing** and must remain separate outputs.
 │  "What type of thermal event is this?"   │
 │                                          │
 │  Output: predicted_class                 │
-│  Example: industrial_spike_anomaly       │
+│  Example: industrial_spike       │
 │  Source: XGBoost + post-processing       │
 └──────────────────────────────────────────┘
 
@@ -1424,19 +1424,19 @@ These are **NOT the same thing** and must remain separate outputs.
 
 ```text
 Event A:
-  Classification: normal_persistent_industrial
+  Classification: industrial_persistent
   Confidence: 0.95
   Priority Score: 12/100
   → Known industrial source, confidently classified, low priority
 
 Event B:
-  Classification: industrial_spike_anomaly
+  Classification: industrial_spike
   Confidence: 0.91
   Priority Score: 88/100
   → Industrial anomaly, confidently classified, HIGH priority
 
 Event C:
-  Classification: unknown_ambiguous
+  Classification: unknown
   Confidence: 0.38
   Priority Score: 45/100
   → Uncertain classification, model unsure, medium priority
@@ -1929,28 +1929,28 @@ joblib.dump(model, 'xgb_pyroclass_v1/model.joblib')
 {
   "version": "taxonomy-v1",
   "class_to_id": {
-    "normal_persistent_industrial": 0,
-    "industrial_spike_anomaly": 1,
-    "non_industrial_thermal_activity": 2,
-    "forest_vegetation_fire": 3,
-    "agricultural_burning": 4,
-    "unknown_ambiguous": 5
+    "industrial_persistent": 0,
+    "industrial_spike": 1,
+    "non_industrial": 2,
+    "forest_fire": 3,
+    "ag_burning": 4,
+    "unknown": 5
   },
   "id_to_class": {
-    "0": "normal_persistent_industrial",
-    "1": "industrial_spike_anomaly",
-    "2": "non_industrial_thermal_activity",
-    "3": "forest_vegetation_fire",
-    "4": "agricultural_burning",
-    "5": "unknown_ambiguous"
+    "0": "industrial_persistent",
+    "1": "industrial_spike",
+    "2": "non_industrial",
+    "3": "forest_fire",
+    "4": "ag_burning",
+    "5": "unknown"
   },
   "display_names": {
-    "normal_persistent_industrial": "Normal Persistent Industrial",
-    "industrial_spike_anomaly": "Industrial Spike / Anomaly",
-    "non_industrial_thermal_activity": "Non-Industrial Thermal Activity",
-    "forest_vegetation_fire": "Forest / Vegetation Fire",
-    "agricultural_burning": "Agricultural Burning",
-    "unknown_ambiguous": "Unknown / Ambiguous"
+    "industrial_persistent": "Normal Persistent Industrial",
+    "industrial_spike": "Industrial Spike / Anomaly",
+    "non_industrial": "Non-Industrial Thermal Activity",
+    "forest_fire": "Forest / Vegetation Fire",
+    "ag_burning": "Agricultural Burning",
+    "unknown": "Unknown / Ambiguous"
   }
 }
 ```
@@ -1969,12 +1969,12 @@ joblib.dump(model, 'xgb_pyroclass_v1/model.joblib')
   "random_seed": 42,
   "num_classes": 6,
   "class_names": [
-    "normal_persistent_industrial",
-    "industrial_spike_anomaly",
-    "non_industrial_thermal_activity",
-    "forest_vegetation_fire",
-    "agricultural_burning",
-    "unknown_ambiguous"
+    "industrial_persistent",
+    "industrial_spike",
+    "non_industrial",
+    "forest_fire",
+    "ag_burning",
+    "unknown"
   ],
   "hyperparameters": {
     "n_estimators": 500,
@@ -2136,12 +2136,12 @@ The ML inference endpoint must return:
   "predicted_class": "string — one of six canonical labels",
   "confidence": 0.91,
   "class_probabilities": {
-    "normal_persistent_industrial": 0.03,
-    "industrial_spike_anomaly": 0.91,
-    "non_industrial_thermal_activity": 0.02,
-    "forest_vegetation_fire": 0.01,
-    "agricultural_burning": 0.01,
-    "unknown_ambiguous": 0.02
+    "industrial_persistent": 0.03,
+    "industrial_spike": 0.91,
+    "non_industrial": 0.02,
+    "forest_fire": 0.01,
+    "ag_burning": 0.01,
+    "unknown": 0.02
   },
   "anomaly_score": 88,
   "priority_level": "high",
@@ -2177,7 +2177,7 @@ The ML inference endpoint must return:
 | `class_probabilities` | dict | Yes | All six class probabilities, must sum to ~1.0 |
 | `anomaly_score` | int | Yes | Priority score 0–100 |
 | `priority_level` | string | Yes | "high" / "medium" / "low" |
-| `unknown_reason` | string or null | Yes | Explanation if classified as unknown_ambiguous, null otherwise |
+| `unknown_reason` | string or null | Yes | Explanation if classified as unknown, null otherwise |
 | `model_version` | string | Yes | From model_metadata.json |
 | `feature_version` | string | Yes | From feature_schema.json |
 | `top_explanatory_features` | list | Yes | Top N SHAP-based explanation factors |
@@ -2598,7 +2598,7 @@ ml/
 | Item | Detail |
 |---|---|
 | **Objective** | Confirm end-to-end demo readiness |
-| **Tasks** | 1. Run full pipeline: raw event → features → classification → explanation 2. Verify backend API returns correct response format 3. Verify dashboard correctly displays classification, confidence, priority, and explanations 4. Walk through all six categories using prototype points 5. Verify unknown_ambiguous behavior works 6. Record actual model outputs (do not fabricate) |
+| **Tasks** | 1. Run full pipeline: raw event → features → classification → explanation 2. Verify backend API returns correct response format 3. Verify dashboard correctly displays classification, confidence, priority, and explanations 4. Walk through all six categories using prototype points 5. Verify unknown behavior works 6. Record actual model outputs (do not fabricate) |
 | **Input** | Complete integrated system |
 | **Output** | Demo-ready system |
 | **Files created** | Final `walkthrough.md` if changes needed |
@@ -2681,7 +2681,7 @@ ml/
 - [ ] All reported metrics are from actual experiments
 
 ### UNCERTAINTY
-- [ ] `unknown_ambiguous` class exists and works
+- [ ] `unknown` class exists and works
 - [ ] Confidence threshold is experimentally selected
 - [ ] Ambiguity margin is experimentally selected
 - [ ] Post-processing logic is implemented and tested
@@ -2735,7 +2735,7 @@ ml/
 | 5 | **Random row-level split leakage** | Same location in train and test → memorization | Use temporal split and/or grouped spatial split |
 | 6 | **Saving only `model.joblib` without schema/config** | Backend cannot validate inputs, silent corruption | Export complete model bundle (§18.2) |
 | 7 | **Inconsistent training and inference preprocessing** | Model produces plausible but wrong predictions | Use shared `features.py` code, run parity tests |
-| 8 | **Forcing low-confidence predictions into a confident class** | Hides model uncertainty, erodes trust | Implement `unknown_ambiguous` post-processing (§14) |
+| 8 | **Forcing low-confidence predictions into a confident class** | Hides model uncertainty, erodes trust | Implement `unknown` post-processing (§14) |
 | 9 | **Confusing classification with priority/anomaly score** | They answer different questions; mixing them corrupts both | Keep as three separate outputs (§15) |
 | 10 | **Hard-coding label mappings in multiple places** | Changes break silently when one copy is updated | Single `label_mapping.json` as source of truth |
 | 11 | **Reporting fabricated or invented evaluation metrics** | Creates false confidence, misleads stakeholders | Report only actual experiment results in `metrics.json` |
@@ -2832,42 +2832,42 @@ num_classes: 6
 
 classes:
   - id: 0
-    label: "normal_persistent_industrial"
+    label: "industrial_persistent"
     display_name: "Normal Persistent Industrial"
     description: >
       Known or strongly inferred persistent industrial thermal source
       operating near its historical baseline.
 
   - id: 1
-    label: "industrial_spike_anomaly"
+    label: "industrial_spike"
     display_name: "Industrial Spike / Anomaly"
     description: >
       Industrial-associated hotspot showing significant abnormal deviation
       from its historical thermal baseline.
 
   - id: 2
-    label: "non_industrial_thermal_activity"
+    label: "non_industrial"
     display_name: "Non-Industrial Thermal Activity"
     description: >
       Thermal activity not confidently attributable to industrial
       persistence, forest/vegetation fire, or agricultural burning.
 
   - id: 3
-    label: "forest_vegetation_fire"
+    label: "forest_fire"
     display_name: "Forest / Vegetation Fire"
     description: >
       Thermal event consistent with vegetation/forest context and
       transient fire behavior.
 
   - id: 4
-    label: "agricultural_burning"
+    label: "ag_burning"
     display_name: "Agricultural Burning"
     description: >
       Thermal event consistent with cropland/agricultural context and
       seasonal/transient burning behavior.
 
   - id: 5
-    label: "unknown_ambiguous"
+    label: "unknown"
     display_name: "Unknown / Ambiguous"
     description: >
       Insufficient or conflicting evidence for a confident semantic class.
@@ -2895,9 +2895,9 @@ frp_z_score          = (current_frp - mean_frp_30d) / max(std_frp_30d, ε)
 
 # Uncertainty post-processing
 if max_prob < CONFIDENCE_THRESHOLD:
-    class = unknown_ambiguous
+    class = unknown
 elif max_prob - second_prob < AMBIGUITY_MARGIN:
-    class = unknown_ambiguous
+    class = unknown
 else:
     class = argmax(probabilities)
 ```

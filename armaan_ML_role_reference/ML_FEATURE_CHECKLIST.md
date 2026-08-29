@@ -204,7 +204,7 @@
 
 | Feature | Options | Current Status | How to Get |
 |---|---|---|---|
-| `target_class` | normal_persistent_industrial, industrial_spike_anomaly, non_industrial_thermal_activity, forest_vegetation_fire, agricultural_burning, unknown_ambiguous | ✗ MISSING | Manual labeling + weak supervision rules |
+| `target_class` | industrial_persistent, industrial_spike, non_industrial, forest_fire, ag_burning, unknown | ✗ MISSING | Manual labeling + weak supervision rules |
 
 **Status**: 0/1 ❌❌❌ IMPOSSIBLE TO TRAIN WITHOUT THIS
 
