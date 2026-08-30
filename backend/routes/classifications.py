@@ -38,7 +38,7 @@ def create_classification(payload: ClassificationInput):
     cur.execute(
         """
         INSERT INTO classifications (
-            hotspot_id, classification, confidence, anomaly_score,
+            hotspot_id, predicted_class, confidence, anomaly_score,
             model_version, facility_id, class_probabilities,
             priority_level, unknown_reason, feature_version,
             top_explanatory_features
@@ -75,7 +75,7 @@ def get_classification(hotspot_id: int):
 
     cur.execute(
         """
-        SELECT hotspot_id, classification AS predicted_class, confidence,
+        SELECT hotspot_id, predicted_class, confidence,
                class_probabilities, anomaly_score, priority_level,
                unknown_reason, model_version, feature_version,
                top_explanatory_features
