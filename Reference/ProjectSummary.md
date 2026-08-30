@@ -267,40 +267,40 @@ displayed categories.
   ----------------------------------------------------------------------------------------
                             ID Class                               Meaning
   ---------------------------- ----------------------------------- -----------------------
-                             0 `normal_persistent_industrial`      Known or strongly
+                             0 `industrial_persistent`      Known or strongly
                                                                    inferred persistent
                                                                    industrial thermal
                                                                    source operating near
                                                                    its historical baseline
 
-                             1 `industrial_spike_anomaly`          Industrial-associated
+                             1 `industrial_spike`          Industrial-associated
                                                                    hotspot showing
                                                                    significant abnormal
                                                                    deviation from its
                                                                    historical thermal
                                                                    baseline
 
-                             2 `non_industrial_thermal_activity`   Thermal activity not
+                             2 `non_industrial`   Thermal activity not
                                                                    confidently
                                                                    attributable to
                                                                    industrial persistence,
                                                                    forest/vegetation fire,
                                                                    or agricultural burning
 
-                             3 `forest_vegetation_fire`            Thermal event
+                             3 `forest_fire`            Thermal event
                                                                    consistent with
                                                                    vegetation/forest
                                                                    context and transient
                                                                    fire behavior
 
-                             4 `agricultural_burning`              Thermal event
+                             4 `ag_burning`              Thermal event
                                                                    consistent with
                                                                    cropland/agricultural
                                                                    context and
                                                                    seasonal/transient
                                                                    burning behavior
 
-                             5 `unknown_ambiguous`                 Insufficient or
+                             5 `unknown`                 Insufficient or
                                                                    conflicting evidence
                                                                    for a confident
                                                                    semantic class
@@ -949,7 +949,7 @@ max(historical_std_frp, epsilon)
 
 Use a small configurable `epsilon` to avoid division by zero.
 
-These features are especially important for `industrial_spike_anomaly`.
+These features are especially important for `industrial_spike`.
 
 Example interpretation:
 
@@ -1346,12 +1346,12 @@ Potential output:
 
 ``` json
 {
-  "normal_persistent_industrial": 0.07,
-  "industrial_spike_anomaly": 0.84,
-  "non_industrial_thermal_activity": 0.03,
-  "forest_vegetation_fire": 0.02,
-  "agricultural_burning": 0.01,
-  "unknown_ambiguous": 0.03
+  "industrial_persistent": 0.07,
+  "industrial_spike": 0.84,
+  "non_industrial": 0.03,
+  "forest_fire": 0.02,
+  "ag_burning": 0.01,
+  "unknown": 0.03
 }
 ```
 
@@ -1383,10 +1383,10 @@ Example:
 
 ``` text
 If max_probability < 0.50:
-    classify as unknown_ambiguous
+    classify as unknown
 
 Else if top_two_probability_margin < 0.10:
-    classify as unknown_ambiguous or mark low confidence
+    classify as unknown or mark low confidence
 
 Else:
     use predicted class
@@ -1766,7 +1766,7 @@ Returns:
 {
   "hotspot_id": "uuid",
   "model_version": "xgb-v1",
-  "predicted_class": "industrial_spike_anomaly",
+  "predicted_class": "industrial_spike",
   "confidence": 0.92,
   "probabilities": {},
   "anomaly_score": 87,
@@ -2228,7 +2228,7 @@ Use macro F1 and per-class metrics.
 
 ## Failure 7 --- Forcing every prediction into a known class
 
-Keep `unknown_ambiguous`.
+Keep `unknown`.
 
 ## Failure 8 --- Showing SHAP numbers without interpretation
 
@@ -2255,12 +2255,12 @@ prototype:
   demo_point_count: 20
 
 classes:
-  - normal_persistent_industrial
-  - industrial_spike_anomaly
-  - non_industrial_thermal_activity
-  - forest_vegetation_fire
-  - agricultural_burning
-  - unknown_ambiguous
+  - industrial_persistent
+  - industrial_spike
+  - non_industrial
+  - forest_fire
+  - ag_burning
+  - unknown
 
 persistence:
   spatial_index: h3
@@ -2296,12 +2296,12 @@ Example:
   "training_data_version": "india-2024-v1",
   "random_seed": 42,
   "classes": [
-    "normal_persistent_industrial",
-    "industrial_spike_anomaly",
-    "non_industrial_thermal_activity",
-    "forest_vegetation_fire",
-    "agricultural_burning",
-    "unknown_ambiguous"
+    "industrial_persistent",
+    "industrial_spike",
+    "non_industrial",
+    "forest_fire",
+    "ag_burning",
+    "unknown"
   ]
 }
 ```
@@ -2513,7 +2513,7 @@ The recommended prototype taxonomy contains **six output categories**.
 
 ## 1. Normal Persistent Industrial Activity
 
-**Label:** `normal_persistent_industrial`
+**Label:** `industrial_persistent`
 
 Thermal hotspots associated with industrial locations that show recurring or historically expected activity.
 
@@ -2526,7 +2526,7 @@ Key signals:
 
 ## 2. Industrial Spike / Anomaly
 
-**Label:** `industrial_spike_anomaly`
+**Label:** `industrial_spike`
 
 An industrial or likely-industrial hotspot whose current thermal characteristics are unusually different from its historical pattern.
 
@@ -2550,7 +2550,7 @@ historical standard deviation
 
 ## 3. Non-Industrial Thermal Activity
 
-**Label:** `non_industrial_thermal_activity`
+**Label:** `non_industrial`
 
 A broad category for thermal events that are not confidently industrial and do not fit the forest-fire or agricultural-burning classes.
 
@@ -2558,7 +2558,7 @@ A broad category for thermal events that are not confidently industrial and do n
 
 ## 4. Forest / Vegetation Fire
 
-**Label:** `forest_vegetation_fire`
+**Label:** `forest_fire`
 
 Hotspots whose spatial and environmental context indicates burning in forest, woodland, grassland, or other natural vegetation.
 
@@ -2570,7 +2570,7 @@ Key signals:
 
 ## 5. Agricultural Burning
 
-**Label:** `agricultural_burning`
+**Label:** `ag_burning`
 
 Thermal detections associated with cropland or agricultural areas where crop-residue or field burning is the likely source.
 
@@ -2582,7 +2582,7 @@ Key signals:
 
 ## 6. Unknown / Ambiguous
 
-**Label:** `unknown_ambiguous`
+**Label:** `unknown`
 
 Use when evidence is insufficient for a reliable classification.
 
@@ -2600,10 +2600,10 @@ Example:
 
 ```text
 if max_class_probability < CONFIDENCE_THRESHOLD:
-    output = unknown_ambiguous
+    output = unknown
 
 elif top_probability - second_probability < AMBIGUITY_MARGIN:
-    output = unknown_ambiguous
+    output = unknown
 ```
 
 Thresholds must be experimentally validated and stored in configuration.
@@ -2641,7 +2641,7 @@ This is a conceptual framework. The actual implementation may use a direct multi
 These are **not the same thing**.
 
 ```text
-Classification: industrial_spike_anomaly
+Classification: industrial_spike
 Confidence: 0.91
 Priority score: 88/100
 ```
@@ -2689,17 +2689,17 @@ Priority: High
 
 | # | Display Name | Machine Label | Main Purpose |
 |---|---|---|---|
-| 1 | Normal Persistent Industrial | `normal_persistent_industrial` | Recognize normal industrial heat and avoid false alarms |
-| 2 | Industrial Spike / Anomaly | `industrial_spike_anomaly` | Detect unusual industrial thermal events |
-| 3 | Non-Industrial Thermal Activity | `non_industrial_thermal_activity` | Separate miscellaneous non-industrial heat sources |
-| 4 | Forest / Vegetation Fire | `forest_vegetation_fire` | Identify natural vegetation/forest fires |
-| 5 | Agricultural Burning | `agricultural_burning` | Identify crop/field burning |
-| 6 | Unknown / Ambiguous | `unknown_ambiguous` | Avoid forced low-confidence classifications |
+| 1 | Normal Persistent Industrial | `industrial_persistent` | Recognize normal industrial heat and avoid false alarms |
+| 2 | Industrial Spike / Anomaly | `industrial_spike` | Detect unusual industrial thermal events |
+| 3 | Non-Industrial Thermal Activity | `non_industrial` | Separate miscellaneous non-industrial heat sources |
+| 4 | Forest / Vegetation Fire | `forest_fire` | Identify natural vegetation/forest fires |
+| 5 | Agricultural Burning | `ag_burning` | Identify crop/field burning |
+| 6 | Unknown / Ambiguous | `unknown` | Avoid forced low-confidence classifications |
 
 ## Mandatory Implementation Rules
 
 1. Keep these six categories consistent across training, label mapping, backend APIs, database values, and frontend display.
-2. Do not collapse `normal_persistent_industrial` and `industrial_spike_anomaly` into one class; their distinction is central to the prototype.
+2. Do not collapse `industrial_persistent` and `industrial_spike` into one class; their distinction is central to the prototype.
 3. Do not force low-confidence predictions into a specific category.
 4. Keep `classification`, `confidence`, and `priority/anomaly score` separate.
 5. Version the taxonomy and label mapping if class definitions change.
