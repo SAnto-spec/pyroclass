@@ -16,17 +16,17 @@ export function FacilityFilters({ filters, onChange }: Props) {
   const update = (patch: Partial<FacilityFiltersState>) => onChange({ ...filters, ...patch });
 
   const selectClass =
-    "rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-300 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500";
+    "h-7 rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2 text-[12px] text-[var(--text-secondary)] focus:border-[var(--border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]";
   const inputClass =
-    "w-full rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100 placeholder:text-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500";
+    "h-7 w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2 text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-faint)] focus:border-[var(--border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]";
 
   return (
-    <div className="rounded-md border border-slate-800 bg-slate-900 px-3 py-3">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+    <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-3 py-3">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
         <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Search facility</span>
+          <span className="text-[11px] font-medium text-[var(--text-muted)]">Search facility</span>
           <span className="relative">
-            <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+            <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-faint)]" />
             <input
               value={filters.search}
               onChange={(e) => update({ search: e.target.value })}
@@ -37,7 +37,7 @@ export function FacilityFilters({ filters, onChange }: Props) {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Facility type</span>
+          <span className="text-[11px] font-medium text-[var(--text-muted)]">Facility type</span>
           <select value={filters.type} onChange={(e) => update({ type: e.target.value as FacilityFiltersState["type"] })} className={selectClass}>
             <option value="all">All types</option>
             <option value="refinery">Refinery</option>
@@ -50,7 +50,7 @@ export function FacilityFilters({ filters, onChange }: Props) {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">Region</span>
+          <span className="text-[11px] font-medium text-[var(--text-muted)]">Region</span>
           <select value={filters.region} onChange={(e) => update({ region: e.target.value })} className={selectClass}>
             <option value="all">All regions</option>
             <option value="Western India">Western India</option>
@@ -59,6 +59,27 @@ export function FacilityFilters({ filters, onChange }: Props) {
           </select>
         </label>
       </div>
+
+      {(filters.search || filters.type !== "all" || filters.region !== "all") && (
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-[var(--border-subtle)] pt-2.5">
+          <span className="text-[11px] text-[var(--text-faint)]">
+            {[
+              filters.search ? `Search: ${filters.search}` : null,
+              filters.type !== "all" ? `Type: ${filters.type.replace("_", " ")}` : null,
+              filters.region !== "all" ? `Region: ${filters.region}` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </span>
+          <button
+            type="button"
+            onClick={() => onChange({ search: "", type: "all", region: "all" })}
+            className="ml-auto inline-flex h-6 items-center rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2 text-[11px] font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)]"
+          >
+            Clear
+          </button>
+        </div>
+      )}
     </div>
   );
 }

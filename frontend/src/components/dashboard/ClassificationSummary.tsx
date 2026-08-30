@@ -10,41 +10,41 @@ export function ClassificationSummary({ data }: ClassificationSummaryProps) {
   return (
     <section
       aria-labelledby="classification-heading"
-      className="rounded-md border border-slate-800 bg-slate-900"
+      className="overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)]"
     >
-      <div className="border-b border-slate-800 px-4 py-3">
+      <div className="border-b border-[var(--border)] px-3 py-2.5">
         <h2
           id="classification-heading"
-          className="text-xs font-semibold uppercase tracking-widest text-slate-200"
+          className="text-[11px] font-semibold tracking-[0.04em] text-[var(--text-primary)]"
         >
-          Classification Summary
+          Classification mix
         </h2>
-        <p className="mt-1 text-xs text-slate-500">
-          {total.toLocaleString()} classified anomalies · last 30 days
+        <p className="mt-0.5 text-[11px] text-[var(--text-muted)]">
+          {total.toLocaleString()} · last 30 days
         </p>
       </div>
 
-      <div className="space-y-3 px-4 py-4">
+      <div className="space-y-2.5 px-3 py-3">
         {data.map((item) => {
           const pct = total > 0 ? (item.count / total) * 100 : 0;
           return (
-            <div key={item.key} className="space-y-1.5">
+            <div key={item.key} className="space-y-1">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs font-medium text-slate-300">
+                <span className="text-[12px] font-medium text-[var(--text-primary)]">
                   {item.label}
                 </span>
                 <span className="flex items-center gap-2">
-                  <span className="text-xs tabular-nums text-slate-400">
+                  <span className="text-[11px] tabular-nums font-medium text-[var(--text-primary)] operational-data">
                     {item.count.toLocaleString()}
                   </span>
-                  <span className="min-w-[36px] text-right text-[11px] tabular-nums text-slate-500">
-                    {pct.toFixed(1)}%
+                  <span className="min-w-[32px] text-right text-[11px] tabular-nums text-[var(--text-muted)]">
+                    {pct.toFixed(0)}%
                   </span>
                 </span>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--surface-subtle)] border border-[var(--border-subtle)]">
                 <div
-                  className="h-full rounded-full bg-amber-500 transition-all"
+                  className="h-full rounded-full bg-[var(--text-secondary)] transition-all"
                   style={{ width: `${pct}%` }}
                   role="progressbar"
                   aria-valuenow={Math.round(pct)}
@@ -58,10 +58,9 @@ export function ClassificationSummary({ data }: ClassificationSummaryProps) {
         })}
       </div>
 
-      <div className="border-t border-slate-800 px-4 py-2.5">
-        <p className="text-[11px] leading-relaxed text-slate-500">
-          Automated classification pending review. Industrial fire vs wildfire
-          requires contextual verification.
+      <div className="border-t border-[var(--border-subtle)] bg-[var(--surface-subtle)] px-3 py-2">
+        <p className="text-[11px] leading-relaxed text-[var(--text-muted)]">
+          Automated · verification required for industrial vs wildfire.
         </p>
       </div>
     </section>

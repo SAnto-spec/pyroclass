@@ -20,6 +20,8 @@ export interface MapContainerProps {
   onAnomalySelect?: (id: string) => void;
   onFacilitySelect?: (id: string) => void;
   onSourceSelect?: (id: string) => void;
+  className?: string;
+  onMapReady?: (map: maplibregl.Map) => void;
 }
 
 const MAP_STYLE: maplibregl.StyleSpecification = {
@@ -80,6 +82,8 @@ export function MapContainer({
   onAnomalySelect,
   onFacilitySelect,
   onSourceSelect,
+  className,
+  onMapReady,
 }: MapContainerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -364,6 +368,7 @@ export function MapContainer({
       };
       setPointer(["thermal-anomaly-circles", "industrial-facility-circles", "persistent-source-circles"]);
 
+      onMapReady?.(map);
       setMapReady(true);
     });
 
@@ -450,60 +455,63 @@ export function MapContainer({
     <section
       role="region"
       aria-label="Geospatial map"
-      className="relative flex h-[360px] flex-col overflow-hidden rounded-md border border-slate-800 bg-slate-900 sm:h-[420px] lg:h-[480px]"
+      className={
+        className ??
+        "relative flex h-[380px] flex-col overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)] sm:h-[440px] lg:h-[560px]"
+      }
     >
       <div ref={containerRef} className="h-full w-full min-h-0 flex-1" />
 
-      {/* Top overlay: geospatial header */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between border-b border-slate-800 bg-slate-900/90 px-3 py-1.5 backdrop-blur-[2px]">
+      {/* Top overlay: geospatial header — light, discreet */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-between border-b border-[var(--border)] bg-[var(--map-overlay-bg)] px-3 py-1.5 backdrop-blur-[6px]">
         <div className="flex items-center gap-2">
-          <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-400">VIIRS / SLSTR</span>
-          <span className="hidden text-[11px] text-slate-500 sm:inline">
-            {anomaliesData.length} anomalies · {facilitiesData.length} facilities · {sourcesData.length} persistent
+          <span className="rounded-[4px] border border-[var(--border)] bg-white px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.04em] text-[var(--text-muted)]">VIIRS / SLSTR</span>
+          <span className="hidden text-[11px] text-[var(--text-muted)] sm:inline">
+            {anomaliesData.length} · {facilitiesData.length} · {sourcesData.length} persistent
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
-          <span className="text-[11px] text-slate-400">Live mock</span>
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--text-faint)]" aria-hidden="true" />
+          <span className="text-[10px] leading-none text-[var(--text-faint)]">Mock data · 4m ago</span>
         </div>
       </div>
 
-      {/* Layer control */}
-      <div className="absolute left-2 top-10 z-[1] rounded-md border border-slate-700 bg-slate-900/95 px-2.5 py-2 text-xs shadow-lg backdrop-blur">
-        <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-300">
+      {/* Layer control — light */}
+      <div className="absolute left-2 top-10 z-[1] rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2.5 py-2 text-xs shadow-[var(--shadow-md)]">
+        <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-[var(--text-muted)]">
           <Layers className="h-3 w-3" /> Layers
         </div>
-        <label className="flex cursor-pointer items-center gap-2 py-1 text-slate-300">
+        <label className="flex cursor-pointer items-center gap-2 py-1 text-[var(--text-secondary)]">
           <input
             type="checkbox"
             checked={showAnomalies}
             onChange={(e) => setShowAnomalies(e.target.checked)}
-            className="h-3 w-3 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+            className="h-3 w-3 rounded border-[var(--border-strong)] bg-white text-[var(--accent)] focus:ring-[var(--accent)]"
           />
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-amber-500" /> Thermal Anomalies
+            <span className="h-2 w-2 rounded-full bg-[var(--accent)]" /> Thermal Anomalies
           </span>
         </label>
-        <label className="flex cursor-pointer items-center gap-2 py-1 text-slate-300">
+        <label className="flex cursor-pointer items-center gap-2 py-1 text-[var(--text-secondary)]">
           <input
             type="checkbox"
             checked={showFacilities}
             onChange={(e) => setShowFacilities(e.target.checked)}
-            className="h-3 w-3 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500"
+            className="h-3 w-3 rounded border-[var(--border-strong)] bg-white text-[var(--accent)] focus:ring-[var(--accent)]"
           />
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full border border-amber-500 bg-slate-800" /> Industrial Facilities
+            <span className="h-2 w-2 rounded-full border border-[var(--accent)] bg-white" /> Industrial Facilities
           </span>
         </label>
-        <label className="flex cursor-pointer items-center gap-2 py-1 text-slate-300">
+        <label className="flex cursor-pointer items-center gap-2 py-1 text-[var(--text-secondary)]">
           <input
             type="checkbox"
             checked={showSources}
             onChange={(e) => setShowSources(e.target.checked)}
-            className="h-3 w-3 rounded border-slate-600 bg-slate-800 text-sky-400 focus:ring-sky-400"
+            className="h-3 w-3 rounded border-[var(--border-strong)] bg-white text-sky-600 focus:ring-sky-600"
           />
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full border border-sky-300 bg-amber-500/30" /> Persistent Sources
+            <span className="h-2 w-2 rounded-full border border-sky-300 bg-[var(--accent)]/20" /> Persistent Sources
           </span>
         </label>
       </div>
