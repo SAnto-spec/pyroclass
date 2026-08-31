@@ -17,6 +17,7 @@ import { useInvestigationFilters, anomalySeverity } from "../hooks/useInvestigat
 import { useRecentStore } from "../store/recentStore";
 import { useCommunityStore } from "../store/communityStore";
 import { exportAnomaliesCsv, exportAnomaliesGeoJson } from "../lib/export";
+import { getRisk } from "../api/risk";
 import type { BackendFacility, FacilityStatus, FacilityType, IndustrialFacility } from "../types/facility";
 import { getFacilities } from "../api/anomalies";
 
@@ -105,6 +106,13 @@ export function Anomalies() {
     if (!selectedId) return null;
     return anomalies.find((anomaly) => anomaly.id === selectedId) ?? null;
   }, [anomalies, selectedId]);
+
+  const riskQuery = useQuery({
+    queryKey: ["risk", selectedId],
+    queryFn: () => getRisk(Number(selectedId)),
+    enabled: Boolean(selectedId && /^\d+$/.test(selectedId)),
+    staleTime: 30000,
+  });
 
   const selectedFacility = useMemo(() => {
     const nearbyName = selected?.nearbyFacility?.name;
@@ -218,7 +226,7 @@ export function Anomalies() {
           </div>
         </div>
       ) : (
-        <InvestigationDrawer anomaly={selected} facility={selectedFacility} source={linkedSource} open={Boolean(selected && !isNotFound)} onClose={closeDrawer} onFacilityView={() => { closeDrawer(); navigate(`/facilities${location.search}`); }} onViewOnMap={() => undefined} />
+        <InvestigationDrawer anomaly={selected} facility={selectedFacility} source={linkedSource} risk={riskQuery.data ?? null} riskLoading={riskQuery.isLoading} open={Boolean(selected && !isNotFound)} onClose={closeDrawer} onFacilityView={() => { closeDrawer(); navigate(`/facilities${location.search}`); }} onViewOnMap={() => undefined} />
       )}
     </div>
   );

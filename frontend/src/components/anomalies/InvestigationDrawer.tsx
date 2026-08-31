@@ -21,6 +21,7 @@ import {
 import type { ThermalAnomaly } from "../../types/anomaly";
 import type { IndustrialFacility } from "../../types/facility";
 import type { PersistentThermalSource } from "../../types/source";
+import type { RiskAssessment } from "../../types/risk";
 import { anomalySeverity } from "../../hooks/useInvestigationFilters";
 import { OctagonAlert, TriangleAlert, CircleAlert, MinusCircle } from "lucide-react";
 import { EvidencePanel } from "./EvidencePanel";
@@ -30,6 +31,8 @@ interface Props {
   anomaly: ThermalAnomaly | null;
   facility?: IndustrialFacility | null;
   source?: PersistentThermalSource | null;
+  risk?: RiskAssessment | null;
+  riskLoading?: boolean;
   open: boolean;
   onClose: () => void;
   onFacilityView?: (id: string) => void;
@@ -54,7 +57,7 @@ const severityCfg = {
 
 type Tab = "overview" | "history" | "facility" | "evidence" | "ground" | "actions";
 
-export function InvestigationDrawer({ anomaly, facility, source, open, onClose, onFacilityView, onViewOnMap }: Props) {
+export function InvestigationDrawer({ anomaly, facility, source, risk, riskLoading = false, open, onClose, onFacilityView, onViewOnMap }: Props) {
   const [tab, setTab] = useState<Tab>("overview");
   const [copied, setCopied] = useState<string | null>(null);
   const [reviewed, setReviewed] = useState(false);
@@ -215,6 +218,32 @@ export function InvestigationDrawer({ anomaly, facility, source, open, onClose, 
                   <p className="mt-1 text-[13px] font-medium capitalize text-[var(--text-primary)]">{anomaly.status === "active" ? "Unreviewed" : anomaly.status}</p>
                   <p className="text-[11px] text-[var(--text-muted)]">{anomaly.status === "active" ? "Requires triage" : anomaly.status === "review" ? "Under review" : "Resolved"}</p>
                 </div>
+              </div>
+
+              <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-3 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] tracking-[0.04em] text-[var(--text-faint)]">RISK ASSESSMENT</p>
+                  {risk ? <span className="rounded-[4px] border border-[var(--border)] bg-[var(--surface-subtle)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--text-secondary)]">{risk.risk_tier}</span> : null}
+                </div>
+                {riskLoading ? (
+                  <p className="mt-1 text-[11px] text-[var(--text-muted)]">Calculating risk...</p>
+                ) : risk ? (
+                  <>
+                    <p className="mt-1 text-[18px] font-semibold text-[var(--text-primary)] operational-data">{risk.risk_score.toFixed(1)} <span className="text-[11px] font-normal text-[var(--text-muted)]">/ 100</span></p>
+                    <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                      {Object.entries(risk.probability_breakdown).map(([key, value]) => (
+                        <div key={key} className="rounded-[4px] border border-[var(--border)] bg-[var(--surface-subtle)] px-1.5 py-1.5">
+                          <p className="text-[10px] capitalize text-[var(--text-faint)]">{key.replace("_", " ")}</p>
+                          <p className="text-[11px] font-semibold text-[var(--text-secondary)]">{Math.round(value * 100)}%</p>
+                        </div>
+                      ))}
+                    </div>
+                    {typeof risk.explanation.context_note === "string" && <p className="mt-2 text-[11px] leading-relaxed text-[var(--text-muted)]">{risk.explanation.context_note}</p>}
+                    {typeof risk.explanation.proximity_note === "string" && <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">{risk.explanation.proximity_note}</p>}
+                  </>
+                ) : (
+                  <p className="mt-1 text-[11px] text-[var(--text-muted)]">Risk assessment unavailable for this hotspot.</p>
+                )}
               </div>
 
               <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-3 py-3">

@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 COPY database ./database
 COPY routes ./routes
+COPY services ./services
 COPY ingestion ./ingestion
 
 EXPOSE 8000
