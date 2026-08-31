@@ -4,6 +4,8 @@ export type AnomalyClassification =
   | "agricultural_burn"
   | "gas_flare"
   | "mining"
+  | "non_industrial"
+  | "unknown"
   | "other";
 
 export interface NearbyFacility {

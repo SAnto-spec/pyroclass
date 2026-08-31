@@ -18,6 +18,12 @@ def get_hotspots():
             case_type,
             latitude,
             longitude,
+            timestamp,
+            frp,
+            bright_ti4,
+            bright_ti5,
+            confidence,
+            firms_type,
             h3_cell,
             n,
             active_days,
@@ -74,6 +80,12 @@ def get_hotspots():
         "case_type",
         "latitude",
         "longitude",
+        "timestamp",
+        "frp",
+        "bright_ti4",
+        "bright_ti5",
+        "confidence",
+        "firms_type",
         "h3_cell",
         "n",
         "active_days",
@@ -141,6 +153,12 @@ def get_hotspot(hotspot_id: int):
             case_type,
             latitude,
             longitude,
+            timestamp,
+            frp,
+            bright_ti4,
+            bright_ti5,
+            confidence,
+            firms_type,
             h3_cell,
             n,
             active_days,
@@ -196,7 +214,10 @@ def get_hotspot(hotspot_id: int):
     conn.close()
 
     if row is None:
-        raise HTTPException(status_code=404, detail=f"Hotspot {hotspot_id} not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Hotspot {hotspot_id} not found"
+        )
 
     columns = [
         "hotspot_id",
@@ -204,6 +225,12 @@ def get_hotspot(hotspot_id: int):
         "case_type",
         "latitude",
         "longitude",
+        "timestamp",
+        "frp",
+        "bright_ti4",
+        "bright_ti5",
+        "confidence",
+        "firms_type",
         "h3_cell",
         "n",
         "active_days",
@@ -260,6 +287,7 @@ def get_hotspot_context(hotspot_id: int):
     cur.execute(
         """
         SELECT
+            timestamp,
             case_id,
             context_type,
             context_confidence,
@@ -301,9 +329,13 @@ def get_hotspot_context(hotspot_id: int):
     conn.close()
 
     if row is None:
-        raise HTTPException(status_code=404, detail=f"Hotspot {hotspot_id} not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Hotspot {hotspot_id} not found"
+        )
 
     columns = [
+        "timestamp",
         "case_id",
         "context_type",
         "context_confidence",
@@ -346,6 +378,7 @@ def get_hotspot_features(hotspot_id: int):
     cur.execute(
         """
         SELECT
+            timestamp,
             case_id,
 
             -- Thermal / activity features
@@ -410,9 +443,13 @@ def get_hotspot_features(hotspot_id: int):
     conn.close()
 
     if row is None:
-        raise HTTPException(status_code=404, detail=f"Hotspot {hotspot_id} not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Hotspot {hotspot_id} not found"
+        )
 
     columns = [
+        "timestamp",
         "case_id",
 
         "n",

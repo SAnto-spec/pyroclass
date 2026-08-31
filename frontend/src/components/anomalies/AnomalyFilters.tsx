@@ -1,13 +1,18 @@
 import { Search } from "lucide-react";
 import type { AnomalyClassification } from "../../types/anomaly";
 
-const CLASSIFICATION_OPTIONS: { value: AnomalyClassification | "all"; label: string }[] = [
+const CLASSIFICATION_OPTIONS: {
+  value: AnomalyClassification | "all";
+  label: string;
+}[] = [
   { value: "all", label: "All" },
   { value: "industrial_fire", label: "Industrial Fire" },
   { value: "wildfire", label: "Wildfire" },
   { value: "agricultural_burn", label: "Agricultural Burn" },
   { value: "gas_flare", label: "Gas Flare" },
   { value: "mining", label: "Mining" },
+  { value: "non_industrial", label: "Non-Industrial" },
+  { value: "unknown", label: "Unknown" },
   { value: "other", label: "Other" },
 ];
 

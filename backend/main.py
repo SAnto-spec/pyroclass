@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from routes.hotspots import router as hotspots_router
 from routes.classifications import router as classifications_router
@@ -8,6 +9,14 @@ from routes.facilities import router as facilities_router
 app = FastAPI(
     title="PyroClass API",
     version="0.1.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
