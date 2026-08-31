@@ -15,7 +15,7 @@ import {
   getFacilities,
 } from "../api/anomalies";
 
-import type { BackendFacility } from "../api/anomalies";
+import type { BackendFacility } from "../types/facility";
 
 import type { ThermalAnomaly } from "../types/anomaly";
 

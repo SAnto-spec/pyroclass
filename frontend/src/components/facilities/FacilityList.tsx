@@ -7,6 +7,7 @@ const TYPE_LABEL: Record<string, string> = {
   mine: "Mine",
   lng_terminal: "LNG Terminal",
   petrochemical: "Petrochemical",
+  industrial: "Industrial",
 };
 
 interface Props {

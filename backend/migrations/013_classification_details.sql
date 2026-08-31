@@ -3,9 +3,26 @@
 -- Stores model probabilities, priority, unknown reasoning,
 -- feature schema version, and SHAP-based explanations.
 
--- Rename the legacy field to the canonical ML/API name.
-ALTER TABLE classifications
-    RENAME COLUMN classification TO predicted_class;
+-- Rename the legacy field only when an existing database still has it.
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'classifications'
+          AND column_name = 'classification'
+    ) AND NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'classifications'
+          AND column_name = 'predicted_class'
+    ) THEN
+        ALTER TABLE classifications
+            RENAME COLUMN classification TO predicted_class;
+    END IF;
+END $$;
 
 -- Add fields required by the ML/API contract.
 ALTER TABLE classifications

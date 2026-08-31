@@ -1,4 +1,5 @@
 import type { ThermalAnomaly } from "../types/anomaly";
+import type { BackendFacility } from "../types/facility";
 
 import { apiGet, apiPost } from "./client";
 
@@ -23,19 +24,7 @@ interface BackendHotspot {
   context_confidence: number | null;
 }
 
-/*
- * Real facility returned by the backend /facilities/ endpoint.
- *
- * These coordinates belong to the actual facility,
- * not to the nearby thermal hotspot.
- */
-export interface BackendFacility {
-  facility_id: number;
-  name: string;
-  facility_type: string;
-  latitude: number;
-  longitude: number;
-}
+export type { BackendFacility } from "../types/facility";
 
 interface BackendClassification {
   hotspot_id: number;

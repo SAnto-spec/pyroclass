@@ -55,15 +55,21 @@ def insert_live_hotspots(df, engine):
         for _, row in df.iterrows():
             case_id = f"LIVE_{uuid.uuid4().hex[:8]}"
 
+            # FIRMS gives acq_time as e.g. "707" meaning 07:07 UTC — zero-pad it.
+            time_str = str(int(row["acq_time"])).zfill(4)
+            detected_at = f"{row['acq_date']} {time_str[:2]}:{time_str[2:]}:00"
+
             conn.execute(
                 text("""
                     INSERT INTO hotspots (
                         case_id, case_type, latitude, longitude, geometry,
+                        timestamp,
                         mean_frp, max_frp, historical_data_available,
                         specific_facility_identified
                     ) VALUES (
                         :case_id, 'live_detection', :lat, :lon,
                         ST_SetSRID(ST_MakePoint(:lon, :lat), 4326),
+                        :detected_at,
                         :frp, :frp, false, false
                     )
                 """),
@@ -71,6 +77,7 @@ def insert_live_hotspots(df, engine):
                     "case_id": case_id,
                     "lat": row["latitude"],
                     "lon": row["longitude"],
+                    "detected_at": detected_at,
                     "frp": row.get("frp"),
                 },
             )

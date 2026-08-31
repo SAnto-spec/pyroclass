@@ -17,6 +17,12 @@ CREATE TABLE IF NOT EXISTS hotspots (
 
     timestamp TIMESTAMP NOT NULL,
 
+    frp DOUBLE PRECISION,
+    bright_ti4 DOUBLE PRECISION,
+    bright_ti5 DOUBLE PRECISION,
+    confidence DOUBLE PRECISION,
+    firms_type VARCHAR(50),
+
     h3_cell VARCHAR(20),
 
     n DOUBLE PRECISION,
@@ -76,6 +82,10 @@ CREATE TABLE IF NOT EXISTS hotspots (
     specific_facility_identified BOOLEAN,
     historical_data_available BOOLEAN,
 
+    daynight CHAR(1),
+    anomaly_flag BOOLEAN,
+    likely_source VARCHAR(30),
+
     geospatial_review_status VARCHAR(100)
 );
 
@@ -114,7 +124,23 @@ USING GIST (geometry);
 
 
 -- =========================================
--- 3. CLASSIFICATIONS
+-- 3. LAND COVER
+-- =========================================
+
+CREATE TABLE IF NOT EXISTS land_cover (
+    id SERIAL PRIMARY KEY,
+    cover_class VARCHAR(50) NOT NULL,
+    geom GEOMETRY(Geometry, 4326) NOT NULL,
+    source VARCHAR(50) DEFAULT 'OSM',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_land_cover_geom
+ON land_cover USING GIST (geom);
+
+
+-- =========================================
+-- 4. CLASSIFICATIONS
 -- =========================================
 
 CREATE TABLE IF NOT EXISTS classifications (
@@ -122,7 +148,7 @@ CREATE TABLE IF NOT EXISTS classifications (
 
     hotspot_id INTEGER NOT NULL,
 
-    classification VARCHAR(100),
+    predicted_class VARCHAR(100),
 
     confidence DOUBLE PRECISION,
 
@@ -131,6 +157,12 @@ CREATE TABLE IF NOT EXISTS classifications (
     explanation TEXT,
 
     model_version VARCHAR(50),
+
+    class_probabilities JSONB,
+    priority_level TEXT,
+    unknown_reason TEXT,
+    feature_version TEXT,
+    top_explanatory_features JSONB,
 
     classified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 

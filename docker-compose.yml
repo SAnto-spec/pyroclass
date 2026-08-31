@@ -29,7 +29,7 @@ services:
       - ./dataset:/app/dataset
       - ./backend/ingestion:/app/ingestion
       - ./backend/ml:/app/ml
-      - ./model_artifacts:/app/model_artifacts
+      - ./backend/model_artifacts:/app/model_artifacts
     depends_on:
       - postgres
       - redis

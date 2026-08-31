@@ -18,6 +18,7 @@ const TYPE_LABEL: Record<string, string> = {
   mine: "Mine",
   lng_terminal: "LNG Terminal",
   petrochemical: "Petrochemical",
+  industrial: "Industrial",
 };
 
 export function FacilityDetailPanel({ facility, anomalyCount, maxFrp, maxConfidence, persistentNearby, lastDetected, onClose }: Props) {

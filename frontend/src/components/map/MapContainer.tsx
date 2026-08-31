@@ -5,7 +5,7 @@ import { Layers } from "lucide-react";
 
 import type { ThermalAnomaly } from "../../types/anomaly";
 import type { PersistentThermalSource } from "../../types/source";
-import type { BackendFacility } from "../../api/anomalies";
+import type { BackendFacility } from "../../types/facility";
 
 import { mockAnomalies } from "../../mocks/anomalies";
 
