@@ -41,10 +41,10 @@ export function Drawer({ open, onClose, title, description, children, side = "ri
         type="button"
         aria-label="Close drawer"
         onClick={onClose}
-        className="absolute inset-0 bg-[#0f172a]/20 backdrop-blur-[1px]"
+        className="absolute inset-0 bg-[#0f172a]/20 backdrop-blur-[1px] transition-opacity duration-150"
       />
       <div
-        className={`relative ml-auto flex h-full max-w-[min(100vw,420px)] flex-col bg-[var(--surface-elevated)] shadow-[var(--shadow-lg)] border-l border-[var(--border)] ${width} ${side === "left" ? "mr-auto ml-0 border-l-0 border-r" : ""}`}
+        className={`relative ml-auto flex h-full max-w-[min(100vw,420px)] flex-col bg-[var(--surface-elevated)] shadow-[var(--shadow-lg)] border-l border-[var(--border)] ${width} ${side === "left" ? "mr-auto ml-0 border-l-0 border-r" : ""} transition-transform duration-200 ease-out`}
       >
         {(title || description) && (
           <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] px-4 py-3">

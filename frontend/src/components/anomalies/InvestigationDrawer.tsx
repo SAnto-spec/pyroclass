@@ -23,6 +23,8 @@ import type { IndustrialFacility } from "../../types/facility";
 import type { PersistentThermalSource } from "../../types/source";
 import { anomalySeverity } from "../../hooks/useInvestigationFilters";
 import { OctagonAlert, TriangleAlert, CircleAlert, MinusCircle } from "lucide-react";
+import { EvidencePanel } from "./EvidencePanel";
+import { useCommunityStore } from "../../store/communityStore";
 
 interface Props {
   anomaly: ThermalAnomaly | null;
@@ -50,13 +52,22 @@ const severityCfg = {
   low: { label: "Low", icon: MinusCircle, cls: "bg-[var(--low-weak)] text-[var(--low-text)] border-[var(--low-border)]" },
 } as const;
 
-type Tab = "overview" | "history" | "facility" | "evidence" | "actions";
+type Tab = "overview" | "history" | "facility" | "evidence" | "ground" | "actions";
 
 export function InvestigationDrawer({ anomaly, facility, source, open, onClose, onFacilityView, onViewOnMap }: Props) {
   const [tab, setTab] = useState<Tab>("overview");
   const [copied, setCopied] = useState<string | null>(null);
   const [reviewed, setReviewed] = useState(false);
   const [watchlist, setWatchlist] = useState(false);
+
+  // Ground evidence via service/store abstraction — UI unaware of mock vs backend
+  // getCommunityReports() → GET /reports, getIncidentGroundEvidence() → GET /hotspots/{id}/ground-evidence
+  const communityReports = useCommunityStore((s) => s.reports);
+  const getGroundEvidence = useCommunityStore((s) => s.getGroundEvidence);
+  const allReports = communityReports;
+  const reportsForAnomaly = allReports.filter((r) => r.hotspotId === anomaly?.id);
+  const groundSummary = anomaly?.id ? getGroundEvidence(anomaly.id) : null;
+  const hasGround = reportsForAnomaly.length > 0;
 
   useEffect(() => {
     if (open) setTab("overview");
@@ -150,16 +161,20 @@ export function InvestigationDrawer({ anomaly, facility, source, open, onClose, 
 
           {/* Tabs */}
           <div className="mt-3 flex items-center gap-1 overflow-x-auto">
-            {(["overview", "history", "facility", "evidence", "actions"] as Tab[]).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTab(t)}
-                className={`shrink-0 rounded-[var(--radius-md)] px-2.5 py-1.5 text-[11px] font-medium capitalize transition-colors ${tab === t ? "bg-[var(--surface-subtle)] text-[var(--text-primary)] border border-[var(--border)]" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)]"}`}
-              >
-                {t}
-              </button>
-            ))}
+            {(["overview", "history", "facility", "evidence", "ground", "actions"] as Tab[]).map((t) => {
+              const label = t === "ground" ? `Ground Evidence${hasGround ? ` · ${reportsForAnomaly.length}` : ""}` : t;
+              const isGround = t === "ground";
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTab(t)}
+                  className={`shrink-0 rounded-[var(--radius-md)] px-2.5 py-1.5 text-[11px] font-medium capitalize transition-colors ${tab === t ? "bg-[var(--surface-subtle)] text-[var(--text-primary)] border border-[var(--border)]" : isGround && hasGround ? "text-[#0f766e] hover:text-[#0f766e] hover:bg-[#f0fdfa] border border-transparent" : "text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-subtle)]"}`}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -233,6 +248,41 @@ export function InvestigationDrawer({ anomaly, facility, source, open, onClose, 
                   <button onClick={() => facility && onFacilityView?.(facility.id)} className="mt-2 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--accent-muted)] hover:underline">
                     Open facility <ExternalLink className="h-3 w-3" />
                   </button>
+                </div>
+              )}
+
+              {/* Ground Evidence summary — shown when reports exist */}
+              {hasGround && (
+                <div className="rounded-[var(--radius-md)] border border-[#99f6e4] bg-[#f0fdfa] px-3 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[11px] font-semibold tracking-[0.04em] text-[#0f766e] flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-[#0f766e]" aria-hidden="true" /> Ground Evidence — {groundSummary ? groundSummary.consensus.toUpperCase() : "MIXED"}
+                    </p>
+                    <span className="rounded-full border border-[#99f6e4] bg-white px-1.5 py-0.5 text-[10px] font-medium text-[#0f766e]">{reportsForAnomaly.length} observations</span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-[4px] border border-[#99f6e4] bg-white px-2 py-1.5">
+                      <p className="text-[10px] text-[var(--text-faint)]">CORROBORATING</p>
+                      <p className="text-[13px] font-semibold text-[#0f766e]">{groundSummary?.corroborating ?? reportsForAnomaly.filter((r) => !["no_fire_observed","false_alarm","fire_extinguished","unknown"].includes(r.observationType)).length}</p>
+                    </div>
+                    <div className="rounded-[4px] border border-[var(--border)] bg-white px-2 py-1.5">
+                      <p className="text-[10px] text-[var(--text-faint)]">DISPUTED</p>
+                      <p className="text-[13px] font-semibold text-[var(--high-text)]">{groundSummary?.disputing ?? 0}</p>
+                    </div>
+                    <div className="rounded-[4px] border border-[var(--border)] bg-white px-2 py-1.5">
+                      <p className="text-[10px] text-[var(--text-faint)]">PHOTOS</p>
+                      <p className="text-[13px] font-semibold text-[var(--text-primary)]">{reportsForAnomaly.reduce((a, r) => a + r.media.length, 0)}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setTab("ground")} className="mt-2 inline-flex w-full items-center justify-center rounded-[var(--radius-md)] border border-[#0f766e] bg-[#0f766e] px-3 py-1.5 text-[11px] font-medium text-white hover:bg-[#0e6b63]">
+                    View Ground Evidence assessment →
+                  </button>
+                </div>
+              )}
+              {!hasGround && (
+                <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-3 text-center">
+                  <p className="text-[11px] font-medium text-[var(--text-secondary)]">No ground observations yet</p>
+                  <p className="mt-1 text-[11px] text-[var(--text-muted)]">Community Evidence will appear here when linked reports are submitted via Map → Report Observation.</p>
                 </div>
               )}
             </div>
@@ -410,6 +460,10 @@ export function InvestigationDrawer({ anomaly, facility, source, open, onClose, 
                 <p className="mt-2 inline-flex rounded-[4px] border border-[var(--border)] bg-white px-1.5 py-0.5 text-[10px] text-[var(--text-faint)]">Not yet integrated — mock dataset</p>
               </div>
             </div>
+          )}
+
+          {tab === "ground" && (
+            <EvidencePanel anomaly={anomaly} reports={reportsForAnomaly} groundSummary={groundSummary} facility={facility ?? null} source={source ?? null} allReports={allReports} />
           )}
 
           {tab === "actions" && (

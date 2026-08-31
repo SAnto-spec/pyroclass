@@ -8,6 +8,7 @@ import {
   Satellite,
   Bookmark,
   X,
+  ShieldCheck,
 } from "lucide-react";
 import { useUiStore } from "../../store/uiStore";
 import { useWatchlistStore } from "../../store/watchlistStore";
@@ -23,6 +24,7 @@ interface NavItem {
 const PRIMARY_NAV: NavItem[] = [
   { label: "Overview", to: "/dashboard", icon: LayoutDashboard },
   { label: "Investigate", to: "/anomalies", icon: Flame },
+  { label: "Ground Reports", to: "/reports", icon: ShieldCheck },
   { label: "Facilities", to: "/facilities", icon: Factory },
   { label: "Alerts", to: "/alerts", icon: BellRing },
   { label: "Map", to: "/map", icon: MapIcon },

@@ -9,6 +9,7 @@ const Facilities = lazy(() => import("./pages/Facilities").then((m) => ({ defaul
 const Sources = lazy(() => import("./pages/Sources").then((m) => ({ default: m.Sources })));
 const Alerts = lazy(() => import("./pages/Alerts").then((m) => ({ default: m.Alerts })));
 const MapPage = lazy(() => import("./pages/Map").then((m) => ({ default: m.MapPage })));
+const Reports = lazy(() => import("./pages/Reports").then((m) => ({ default: m.Reports })) as never);
 
 function App() {
   return (
@@ -23,6 +24,8 @@ function App() {
           <Route path="sources" element={<Sources />} />
           <Route path="alerts" element={<Alerts />} />
           <Route path="map" element={<MapPage />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="ground-reports" element={<Reports />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>

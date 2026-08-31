@@ -5,8 +5,11 @@ import { GlobalContextBar } from "../components/layout/GlobalContextBar";
 import { SavedViewsBar } from "../components/layout/SavedViewsBar";
 import { Freshness } from "../components/layout/Freshness";
 import { MapContainer } from "../components/map/MapContainer";
+import { ReportObservationModal } from "../components/community/ReportObservationModal";
+import { DemoScenarioBar } from "../components/community/DemoScenarioBar";
 import { useGlobalFilters } from "../hooks/useGlobalFilters";
 import { useRecentStore } from "../store/recentStore";
+import { useCommunityStore } from "../store/communityStore";
 import { exportAnomaliesCsv, exportAnomaliesGeoJson } from "../lib/export";
 import { mockAnomalies } from "../mocks/anomalies";
 import { mockFacilities } from "../mocks/facilities";
@@ -20,11 +23,18 @@ export function MapPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [mapSearch, setMapSearch] = useState(searchParams.get("q") ?? "");
   const [selectedAnomalyId, setSelectedAnomalyId] = useState<string | null>(searchParams.get("anomaly"));
+  const [selectedReportId, setSelectedReportId] = useState<string | null>(searchParams.get("report") ?? null);
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
+  const communityReports = useCommunityStore((s) => s.reports);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [pickingActive, setPickingActive] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [initialHotspotId, setInitialHotspotId] = useState<string | null>(null);
 
-  // sync anomaly param to state
+  // sync anomaly/report param to state
   useEffect(() => {
     setSelectedAnomalyId(searchParams.get("anomaly"));
+    setSelectedReportId(searchParams.get("report"));
   }, [searchParams]);
 
   const filteredAnomalies = useMemo(() => {
@@ -66,6 +76,39 @@ export function MapPage() {
     return list;
   }, [global, mapSearch]);
 
+  const [communityType, setCommunityType] = useState<string>("all");
+  const [communityEvidence, setCommunityEvidence] = useState<"all" | "corroborated" | "disputed" | "unverified">("all");
+  const [communityLinkage, setCommunityLinkage] = useState<"all" | "linked" | "unlinked">("all");
+
+  const filteredCommunityReports = useMemo(() => {
+    return communityReports.filter((r) => {
+      if (communityType !== "all" && r.observationType !== communityType) return false;
+      if (communityEvidence !== "all") {
+        const group: "corroborated" | "disputed" | "unverified" = ["corroborated", "confirmed", "resolved"].includes(r.status)
+          ? "corroborated"
+          : ["disputed", "rejected"].includes(r.status)
+            ? "disputed"
+            : "unverified";
+        if (group !== communityEvidence) return false;
+      }
+      if (communityLinkage !== "all") {
+        const isLinked = r.hotspotId != null && r.hotspotId !== "";
+        if (communityLinkage === "linked" && !isLinked) return false;
+        if (communityLinkage === "unlinked" && isLinked) return false;
+      }
+      if (mapSearch) {
+        const q = mapSearch.toLowerCase();
+        const hay = `${r.id} ${r.observationType} ${r.hotspotId ?? ""} ${r.status}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      if (global.region !== "all" && r.hotspotId) {
+        const an = mockAnomalies.find((a) => a.id === r.hotspotId);
+        if (an && an.region !== global.region) return false;
+      }
+      return true;
+    });
+  }, [communityReports, communityType, communityEvidence, communityLinkage, mapSearch, global.region]);
+
   const pushAnomaly = useRecentStore((s) => s.pushAnomaly);
   const handleAnomalySelect = useCallback(
     (id: string) => {
@@ -78,6 +121,45 @@ export function MapPage() {
     },
     [searchParams, setSearchParams, mapSearch, pushAnomaly]
   );
+
+  const handleReportSelect = useCallback(
+    (id: string) => {
+      setSelectedReportId(id);
+      const next = new URLSearchParams(searchParams);
+      next.set("report", id);
+      setSearchParams(next, { replace: false });
+    },
+    [searchParams, setSearchParams]
+  );
+
+  const handleReportObservationClick = useCallback(() => {
+    // Prefer selected anomaly hotspot as linked default, else map center
+    let hotspot: string | null = selectedAnomalyId;
+    let lat = 19.076;
+    let lng = 72.877;
+    if (mapInstance) {
+      const c = mapInstance.getCenter();
+      lat = c.lat;
+      lng = c.lng;
+    }
+    if (pendingLocation) {
+      lat = pendingLocation.lat;
+      lng = pendingLocation.lng;
+    }
+    setPendingLocation({ lat, lng });
+    setInitialHotspotId(hotspot);
+    setReportModalOpen(true);
+    setPickingActive(false);
+  }, [mapInstance, pendingLocation, selectedAnomalyId]);
+
+  const handleMapClickForPicking = useCallback((lngLat: { lng: number; lat: number }) => {
+    setPendingLocation({ lat: lngLat.lat, lng: lngLat.lng });
+    setPickingActive(false);
+  }, []);
+
+  const handlePickLocationRequest = useCallback(() => {
+    setPickingActive((v) => !v);
+  }, []);
 
   const handleSearchChange = (v: string) => {
     setMapSearch(v);
@@ -122,6 +204,7 @@ export function MapPage() {
       <div className="mx-auto w-full max-w-[1600px] px-3 py-3 sm:px-6 space-y-3">
         <GlobalContextBar />
         <SavedViewsBar />
+        <DemoScenarioBar />
         <div className="flex items-center justify-between">
           <Freshness source="mock" timestamp={filteredAnomalies[0]?.detectedAt} />
           <div className="flex gap-1.5">
@@ -140,12 +223,12 @@ export function MapPage() {
               <input
                 value={mapSearch}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search AN-001, Refinery…"
+                placeholder="Search AN-001, REP-001, Refinery…"
                 className="h-7 w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-white pl-7 pr-2 text-[12px] text-[var(--text-primary)] placeholder:text-[var(--text-faint)] focus:border-[var(--border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
               />
             </div>
             <span className="hidden sm:inline text-[11px] tabular-nums text-[var(--text-muted)]">
-              {filteredAnomalies.length} anomalies · {filteredFacilities.length} facilities · {filteredSources.length} persistent
+              {filteredAnomalies.length} anomalies · {filteredFacilities.length} facilities · {filteredSources.length} persistent · {filteredCommunityReports.length} ground
             </span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -160,6 +243,63 @@ export function MapPage() {
             </button>
           </div>
         </div>
+        {/* Ground Observation filters — does not interfere with anomaly/facility layers */}
+        <div className="flex flex-wrap items-center gap-2 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2">
+          <span className="text-[11px] font-semibold tracking-[0.04em] text-[var(--text-muted)]">Ground Observations</span>
+          <span className="hidden sm:inline h-3 w-px bg-[var(--border)]" aria-hidden="true" />
+          <select
+            value={communityType}
+            onChange={(e) => setCommunityType(e.target.value)}
+            className="h-7 rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2 text-[11px] text-[var(--text-secondary)] focus:border-[var(--border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+            aria-label="Filter by observation type"
+          >
+            <option value="all">All types</option>
+            <option value="fire_visible">Fire visible</option>
+            <option value="smoke_visible">Smoke visible</option>
+            <option value="industrial_activity">Industrial activity</option>
+            <option value="agricultural_burning">Agricultural burning</option>
+            <option value="no_fire_observed">No fire observed</option>
+            <option value="fire_extinguished">Fire extinguished</option>
+            <option value="false_alarm">False alarm</option>
+            <option value="unknown">Unknown</option>
+          </select>
+          <select
+            value={communityEvidence}
+            onChange={(e) => setCommunityEvidence(e.target.value as typeof communityEvidence)}
+            className="h-7 rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2 text-[11px] text-[var(--text-secondary)] focus:border-[var(--border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+            aria-label="Filter by community evidence"
+          >
+            <option value="all">All evidence</option>
+            <option value="corroborated">Corroborated</option>
+            <option value="disputed">Disputed</option>
+            <option value="unverified">Unverified</option>
+          </select>
+          <select
+            value={communityLinkage}
+            onChange={(e) => setCommunityLinkage(e.target.value as typeof communityLinkage)}
+            className="h-7 rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2 text-[11px] text-[var(--text-secondary)] focus:border-[var(--border-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--focus-ring)]"
+            aria-label="Filter by linkage"
+          >
+            <option value="all">All linkages</option>
+            <option value="linked">Linked to FIRMS</option>
+            <option value="unlinked">Unlinked — candidate</option>
+          </select>
+          <span className="text-[11px] tabular-nums text-[var(--text-muted)]">
+            {filteredCommunityReports.length} / {communityReports.length} reports
+          </span>
+          {(communityType !== "all" || communityEvidence !== "all" || communityLinkage !== "all") && (
+            <button
+              onClick={() => {
+                setCommunityType("all");
+                setCommunityEvidence("all");
+                setCommunityLinkage("all");
+              }}
+              className="ml-auto inline-flex h-7 items-center rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2.5 text-[11px] font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)]"
+            >
+              Clear ground filters
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mx-auto flex w-full max-w-[1600px] flex-1 gap-3 px-3 pb-3 sm:px-6">
@@ -168,10 +308,33 @@ export function MapPage() {
             anomalies={filteredAnomalies}
             facilities={filteredFacilities}
             sources={filteredSources}
+            communityReports={filteredCommunityReports}
             selectedAnomalyId={selectedAnomalyId}
+            selectedReportId={selectedReportId}
             onAnomalySelect={handleAnomalySelect}
+            onReportSelect={handleReportSelect}
+            onMapClick={handleMapClickForPicking}
+            onReportObservationClick={handleReportObservationClick}
+            pickingActive={pickingActive}
+            pickingCoords={pendingLocation}
             onMapReady={setMapInstance}
             className="relative flex flex-1 flex-col overflow-hidden rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-sm)] h-[calc(100vh-240px)] min-h-[520px] lg:min-h-[560px]"
+          />
+          <ReportObservationModal
+            open={reportModalOpen}
+            onClose={() => {
+              setReportModalOpen(false);
+              setPickingActive(false);
+            }}
+            initialLat={pendingLocation?.lat ?? null}
+            initialLng={pendingLocation?.lng ?? null}
+            initialHotspotId={initialHotspotId}
+            onPickLocationRequest={handlePickLocationRequest}
+            pickingActive={pickingActive}
+            onSubmitted={(id) => {
+              handleReportSelect(id);
+              // ensure report is visible: fly handled by MapContainer via selectedReportId
+            }}
           />
 
           {/* Legend — proper */}
@@ -201,6 +364,17 @@ export function MapPage() {
                   <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)]/20 border border-sky-300" /> Persistent source
                 </p>
                 <p className="ml-4 text-[10px] text-[var(--text-faint)]">≥7 overpasses — opacity 0.55, size ∝ persistence</p>
+              </div>
+              <div className="border-t border-[var(--border-subtle)] pt-2">
+                <p className="inline-flex items-center gap-1.5 font-medium text-[#0f766e]">
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#0f766e] border border-white shadow-sm" /> Ground Observation
+                </p>
+                <div className="ml-4 mt-1 flex flex-wrap gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-[4px] border border-[#99f6e4] bg-[#f0fdfa] px-1 py-0.5 text-[10px] font-medium text-[#0f766e]">Corroborated</span>
+                  <span className="inline-flex items-center gap-1 rounded-[4px] border border-[#fed7aa] bg-[#fff7ed] px-1 py-0.5 text-[10px] font-medium text-[#9a3412]">Disputed</span>
+                  <span className="inline-flex items-center gap-1 rounded-[4px] border border-[#e2e8f0] bg-[#f8fafc] px-1 py-0.5 text-[10px] font-medium text-[#475569]">Unverified</span>
+                </div>
+                <p className="ml-4 mt-1 text-[10px] text-[var(--text-faint)]">Teal / amber / slate · dashed link to FIRMS when linked</p>
               </div>
             </div>
           </div>

@@ -10,6 +10,8 @@ import { mockAlerts } from "../../mocks/alerts";
 const TITLE_MAP: Record<string, string> = {
   "/dashboard": "Overview",
   "/anomalies": "Investigate",
+  "/reports": "Ground Reports",
+  "/ground-reports": "Ground Reports",
   "/facilities": "Facilities",
   "/sources": "Persistent Sources",
   "/alerts": "Alerts",
@@ -22,6 +24,7 @@ function getTitle(pathname: string): string {
   if (!seg) return "Overview";
   if (seg === "dashboard") return "Overview";
   if (seg === "anomalies") return "Investigate";
+  if (seg === "reports" || seg === "ground-reports") return "Ground Reports";
   return seg.charAt(0).toUpperCase() + seg.slice(1);
 }
 

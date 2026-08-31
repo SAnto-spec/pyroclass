@@ -13,6 +13,7 @@ import { useGlobalFilters } from "../hooks/useGlobalFilters";
 import { mockAnomalies } from "../mocks/anomalies";
 import { mockFacilities } from "../mocks/facilities";
 import { mockSources } from "../mocks/sources";
+import { useCommunityStore } from "../store/communityStore";
 import { recentAlerts } from "../mocks/dashboard";
 import type { ClassificationBreakdown } from "../types/dashboard";
 
@@ -71,6 +72,21 @@ export function Dashboard() {
     if (filters.region === "all") return mockSources;
     return mockSources.filter((s) => s.region === filters.region);
   }, [filters]);
+
+  const communityReports = useCommunityStore((s) => s.reports);
+  const filteredCommunityReports = useMemo(() => {
+    return communityReports.filter((r) => {
+      if (filters.region !== "all" && r.hotspotId) {
+        const an = mockAnomalies.find((a) => a.id === r.hotspotId);
+        if (an && an.region !== filters.region) return false;
+      }
+      if (filters.conf !== "all" && r.hotspotId) {
+        const an = mockAnomalies.find((a) => a.id === r.hotspotId);
+        if (an && an.confidence < parseInt(filters.conf, 10)) return false;
+      }
+      return true;
+    });
+  }, [communityReports, filters]);
 
   // Derived metrics — honest, based on filtered mock, not fake 1,284
   const metrics = useMemo(() => {
@@ -133,15 +149,17 @@ export function Dashboard() {
           <div className="mb-2 flex items-baseline justify-between">
             <h2 className="text-[11px] font-semibold tracking-[0.04em] text-[var(--text-primary)]">Geographic situation</h2>
             <span className="text-[11px] text-[var(--text-faint)]">
-              {metrics.total} detections · {filteredFacilities.length} facilities · {filteredSources.length} sources
+              {metrics.total} detections · {filteredFacilities.length} facilities · {filteredSources.length} persistent · {filteredCommunityReports.length} ground
             </span>
           </div>
           <MapContainer
             anomalies={filteredAnomalies}
             facilities={filteredFacilities}
             sources={filteredSources}
+            communityReports={filteredCommunityReports}
             selectedAnomalyId={effectiveSelectedId}
             onAnomalySelect={setSelectedAnomalyId}
+            showReportButton={false}
           />
           <div className="mt-2 flex flex-wrap items-center gap-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-3 py-2 text-[11px] text-[var(--text-muted)]">
             <span className="font-medium text-[var(--text-secondary)]">Visual encoding</span>
@@ -154,6 +172,9 @@ export function Dashboard() {
             </span>
             <span className="inline-flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-[var(--accent)]/20 border border-sky-300" /> Persistent
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#0f766e] border border-white shadow-sm" /> Ground
             </span>
             <span className="ml-auto hidden sm:inline text-[10px] text-[var(--text-faint)]">Size ∝ FRP / persistence · click to inspect</span>
           </div>
