@@ -1,7 +1,6 @@
-import type { IndustrialFacility } from "../types/facility";
-import { mockFacilities } from "../mocks/facilities";
+import { apiGet } from "./client";
+import type { BackendFacility } from "../types/facility";
 
-// No backend endpoint yet — abstraction ready for future /facilities
-export async function fetchFacilities(): Promise<IndustrialFacility[]> {
-  return mockFacilities;
+export async function fetchFacilities(): Promise<BackendFacility[]> {
+  return apiGet<BackendFacility[]>("/facilities/");
 }

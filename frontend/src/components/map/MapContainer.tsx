@@ -7,7 +7,6 @@ import type { ThermalAnomaly } from "../../types/anomaly";
 import type { PersistentThermalSource } from "../../types/source";
 import type { BackendFacility } from "../../types/facility";
 import type { CommunityReport } from "../../types/community";
-import { mockAnomalies } from "../../mocks/anomalies";
 import { anomaliesToGeoJSON, sourcesToGeoJSON } from "../../mocks/geojson";
 
 export interface MapContainerProps {
@@ -203,7 +202,7 @@ export function MapContainer({
   const [showCommunity, setShowCommunity] = useState(true);
   const [mapReady, setMapReady] = useState(false);
 
-  const anomaliesData = anomalies ?? mockAnomalies;
+  const anomaliesData = anomalies ?? [];
   const facilitiesData = facilities ?? [];
   const sourcesData = sources ?? [];
   const communityData = communityReports ?? [];
@@ -676,7 +675,7 @@ export function MapContainer({
         <div className="flex items-center gap-1.5">
           {pickingActive && <span className="pointer-events-auto inline-flex items-center gap-1 rounded-full border border-[#99f6e4] bg-[#f0fdfa] px-2 py-0.5 text-[10px] font-medium text-[#0f766e]">Pick location — click map</span>}
           <span className="h-1.5 w-1.5 rounded-full bg-[var(--text-faint)]" aria-hidden="true" />
-          <span className="text-[10px] leading-none text-[var(--text-faint)]">Mock data · 4m ago</span>
+          <span className="text-[10px] leading-none text-[var(--text-faint)]">Live API</span>
         </div>
       </div>
 

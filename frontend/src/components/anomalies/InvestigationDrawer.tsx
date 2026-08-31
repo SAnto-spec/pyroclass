@@ -357,7 +357,7 @@ export function InvestigationDrawer({ anomaly, facility, source, risk, riskLoadi
                   <div className="mt-2">
                     <p className="text-[12px] font-medium text-[var(--text-secondary)]">Limited history in current dataset</p>
                     <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">
-                      This anomaly record contains a single detection snapshot. The current mock provides `persistenceScore` and `detectedAt` but not a full event timeline. When linked to a persistent source, timeline will appear here.
+                      This anomaly record contains a single detection snapshot. The current API provides `persistenceScore` and `detectedAt` but not a full event timeline. When linked to a persistent source, timeline will appear here.
                     </p>
                     <div className="mt-3 grid grid-cols-2 gap-2">
                       <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2">
@@ -371,7 +371,7 @@ export function InvestigationDrawer({ anomaly, facility, source, risk, riskLoadi
                         <p className="text-[11px] text-[var(--text-muted)]">FRP {anomaly.frp.toFixed(1)} MW · {anomaly.confidence}% conf</p>
                       </div>
                     </div>
-                    <p className="mt-2 text-[11px] text-[var(--text-faint)]">Data limitation: mock 24 anomalies lack multi-temporal history. Production will show FRP/confidence changes over successive overpasses.</p>
+                    <p className="mt-2 text-[11px] text-[var(--text-faint)]">Data limitation: this API response lacks multi-temporal history. Production will show FRP/confidence changes over successive overpasses.</p>
                   </div>
                 )}
               </div>
@@ -419,7 +419,7 @@ export function InvestigationDrawer({ anomaly, facility, source, risk, riskLoadi
                 <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-4 py-8 text-center">
                   <Factory className="mx-auto h-6 w-6 text-[var(--text-faint)]" />
                   <p className="mt-2 text-[13px] font-medium text-[var(--text-primary)]">No facility within 5 km</p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">This detection has no nearby industrial facility in the mock dataset. Likely non-industrial — consider wildfire or agricultural burn context.</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">This detection has no nearby industrial facility in the current API data. Likely non-industrial — consider wildfire or agricultural burn context.</p>
                   <p className="mt-2 text-[11px] text-[var(--text-faint)]">Region: {anomaly.region} · status {anomaly.status}</p>
                 </div>
               )}
@@ -439,7 +439,7 @@ export function InvestigationDrawer({ anomaly, facility, source, risk, riskLoadi
                   </div>
                   <div className="rounded-[4px] border border-[var(--border)] bg-[var(--surface-subtle)] px-2 py-2">
                     <dt className="text-[10px] text-[var(--text-faint)]">SENSOR</dt>
-                    <dd className="font-medium text-[var(--text-primary)]">VIIRS / SLSTR (mock)</dd>
+                    <dd className="font-medium text-[var(--text-primary)]">VIIRS / SLSTR</dd>
                   </div>
                   <div className="rounded-[4px] border border-[var(--border)] bg-[var(--surface-subtle)] px-2 py-2">
                     <dt className="text-[10px] text-[var(--text-faint)]">FRP</dt>
@@ -486,7 +486,7 @@ export function InvestigationDrawer({ anomaly, facility, source, risk, riskLoadi
               <div className="rounded-[var(--radius-md)] border border-dashed border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-3">
                 <p className="text-[11px] font-medium text-[var(--text-secondary)] flex items-center gap-1"><Satellite className="h-3 w-3" /> Satellite imagery</p>
                 <p className="mt-1 text-[11px] leading-relaxed text-[var(--text-muted)]">High-resolution optical/SAR imagery not yet integrated. This panel will show before/after chips when the imagery service is connected.</p>
-                <p className="mt-2 inline-flex rounded-[4px] border border-[var(--border)] bg-white px-1.5 py-0.5 text-[10px] text-[var(--text-faint)]">Not yet integrated — mock dataset</p>
+                <p className="mt-2 inline-flex rounded-[4px] border border-[var(--border)] bg-white px-1.5 py-0.5 text-[10px] text-[var(--text-faint)]">Not yet integrated — imagery unavailable</p>
               </div>
             </div>
           )}

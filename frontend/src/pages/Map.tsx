@@ -10,10 +10,10 @@ import { ReportObservationModal } from "../components/community/ReportObservatio
 import { DemoScenarioBar } from "../components/community/DemoScenarioBar";
 import { useGlobalFilters } from "../hooks/useGlobalFilters";
 import { useRecentStore } from "../store/recentStore";
+import { useAnomalies } from "../hooks/useAnomalies";
+import { useSources } from "../hooks/useSources";
 import { useCommunityStore } from "../store/communityStore";
 import { exportAnomaliesCsv, exportAnomaliesGeoJson } from "../lib/export";
-import { mockAnomalies } from "../mocks/anomalies";
-import { mockSources } from "../mocks/sources";
 import { getFacilities } from "../api/anomalies";
 import type { BackendFacility } from "../types/facility";
 import * as maplibregl from "maplibre-gl";
@@ -23,6 +23,8 @@ const REFERENCE_NOW = new Date("2026-08-29T12:00:00Z").getTime();
 export function MapPage() {
   const { filters: global } = useGlobalFilters();
   const facilitiesQuery = useQuery({ queryKey: ["facilities"], queryFn: getFacilities, staleTime: 60000 });
+  const anomaliesQuery = useAnomalies();
+  const sourcesQuery = useSources();
   const [searchParams, setSearchParams] = useSearchParams();
   const [mapSearch, setMapSearch] = useState(searchParams.get("q") ?? "");
   const [selectedAnomalyId, setSelectedAnomalyId] = useState<string | null>(searchParams.get("anomaly"));
@@ -42,7 +44,7 @@ export function MapPage() {
   }, [searchParams]);
 
   const filteredAnomalies = useMemo(() => {
-    return mockAnomalies.filter((a) => {
+    return (anomaliesQuery.data ?? []).filter((a) => {
       if (global.region !== "all" && a.region !== global.region) return false;
       if (global.conf !== "all" && a.confidence < parseInt(global.conf, 10)) return false;
       if (global.range !== "all") {
@@ -58,7 +60,7 @@ export function MapPage() {
       }
       return true;
     });
-  }, [global, mapSearch]);
+  }, [anomaliesQuery.data, global, mapSearch]);
 
   const filteredFacilities = useMemo(() => {
     let list: BackendFacility[] = facilities;
@@ -70,14 +72,14 @@ export function MapPage() {
   }, [facilities, mapSearch]);
 
   const filteredSources = useMemo(() => {
-    let list = mockSources;
+    let list = sourcesQuery.data ?? [];
     if (global.region !== "all") list = list.filter((s) => s.region === global.region);
     if (mapSearch) {
       const q = mapSearch.toLowerCase();
       list = list.filter((s) => `${s.id} ${s.classification} ${s.nearbyFacility?.name ?? ""}`.toLowerCase().includes(q));
     }
     return list;
-  }, [global, mapSearch]);
+  }, [global, mapSearch, sourcesQuery.data]);
 
   const [communityType, setCommunityType] = useState<string>("all");
   const [communityEvidence, setCommunityEvidence] = useState<"all" | "corroborated" | "disputed" | "unverified">("all");
@@ -105,12 +107,12 @@ export function MapPage() {
         if (!hay.includes(q)) return false;
       }
       if (global.region !== "all" && r.hotspotId) {
-        const an = mockAnomalies.find((a) => a.id === r.hotspotId);
+        const an = (anomaliesQuery.data ?? []).find((a) => a.id === r.hotspotId);
         if (an && an.region !== global.region) return false;
       }
       return true;
     });
-  }, [communityReports, communityType, communityEvidence, communityLinkage, mapSearch, global.region]);
+  }, [communityReports, communityType, communityEvidence, communityLinkage, mapSearch, global.region, anomaliesQuery.data]);
 
   const pushAnomaly = useRecentStore((s) => s.pushAnomaly);
   const handleAnomalySelect = useCallback(
@@ -193,7 +195,7 @@ export function MapPage() {
     await navigator.clipboard.writeText(text);
   };
 
-  const selectedAnomaly = selectedAnomalyId ? mockAnomalies.find((a) => a.id === selectedAnomalyId) ?? null : null;
+  const selectedAnomaly = selectedAnomalyId ? (anomaliesQuery.data ?? []).find((a) => a.id === selectedAnomalyId) ?? null : null;
 
   // debut: when filtered changes, if selected not in filtered, clear? keep for URL
   useEffect(() => {
@@ -209,7 +211,7 @@ export function MapPage() {
         <SavedViewsBar />
         <DemoScenarioBar />
         <div className="flex items-center justify-between">
-          <Freshness source="mock" timestamp={filteredAnomalies[0]?.detectedAt} />
+          <Freshness source="api" timestamp={filteredAnomalies[0]?.detectedAt} />
           <div className="flex gap-1.5">
             <button onClick={() => exportAnomaliesCsv(filteredAnomalies)} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2 py-1 text-[11px] font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)]">
               Export CSV ({filteredAnomalies.length})

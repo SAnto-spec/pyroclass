@@ -12,11 +12,11 @@ import { Freshness } from "../components/layout/Freshness";
 import { useGlobalFilters } from "../hooks/useGlobalFilters";
 import { useWatchlistStore } from "../store/watchlistStore";
 import { useRecentStore } from "../store/recentStore";
+import { useAnomalies } from "../hooks/useAnomalies";
 import { exportFacilitiesCsv, exportFacilitiesGeoJson } from "../lib/export";
-import { mockAnomalies } from "../mocks/anomalies";
-import { mockSources } from "../mocks/sources";
 import { getFacilities } from "../api/anomalies";
 import type { BackendFacility, FacilityType, IndustrialFacility } from "../types/facility";
+import type { ThermalAnomaly } from "../types/anomaly";
 
 function toFacilityType(facilityType: string | null): FacilityType {
   switch (facilityType) {
@@ -52,6 +52,8 @@ export function Facilities() {
   const { filters: global } = useGlobalFilters();
   const watchlistIds = useWatchlistStore((s) => s.ids);
   const pushFacility = useRecentStore((s) => s.pushFacility);
+  const anomaliesQuery = useAnomalies();
+  const anomalies = anomaliesQuery.data ?? [];
 
   const [filters, setFilters] = useState<FacilityFiltersState>({ search: "", type: "all", region: "all" });
   const [facilities, setFacilities] = useState<BackendFacility[]>([]);
@@ -87,17 +89,17 @@ export function Facilities() {
   const displayFacilities = useMemo(() => facilities.map(toDisplayFacility), [facilities]);
 
   const anomaliesByFacility = useMemo(() => {
-    const map = new Map<string, typeof mockAnomalies>();
+    const map = new Map<string, ThermalAnomaly[]>();
     for (const f of displayFacilities) {
-      map.set(f.id, mockAnomalies.filter((a) => a.nearbyFacility?.id === f.id));
+      map.set(f.id, anomalies.filter((a) => a.nearbyFacility?.id === f.id));
     }
     return map;
-  }, [displayFacilities]);
+  }, [anomalies, displayFacilities]);
 
   const sourcesByFacility = useMemo(() => {
     const map = new Map<string, number>();
     for (const f of displayFacilities) {
-      map.set(f.id, mockSources.filter((s) => s.nearbyFacility?.id === f.id).length);
+      map.set(f.id, 0);
     }
     return map;
   }, [displayFacilities]);
@@ -180,7 +182,7 @@ export function Facilities() {
       <GlobalContextBar />
       <SavedViewsBar />
       <div className="flex items-center justify-between">
-        <Freshness source="api" timestamp={enriched.length > 0 ? new Date().toISOString() : null} />
+        <Freshness source="api" />
         <div className="flex gap-1.5">
           <button onClick={() => exportFacilitiesCsv(filtered)} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2 py-1 text-[11px] font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)]">
             Export CSV ({filtered.length})

@@ -137,7 +137,7 @@ export function FacilityDetailPanel({ facility, anomalyCount, maxFrp, maxConfide
         </div>
 
         <p className="px-1 text-[11px] leading-relaxed text-[var(--text-faint)]">
-          Counts derived from current anomaly mock (24 detections). Persistent source link shows co-located thermal history.
+          Counts derived from currently loaded anomaly records. Persistent source link shows co-located thermal history.
         </p>
       </div>
     </div>

@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Search, LayoutDashboard, Flame, BellRing, Factory, Map as MapIcon, Trash2, Maximize2, Locate, RefreshCw, Bookmark } from "lucide-react";
-import { mockAnomalies } from "../../mocks/anomalies";
-import { mockFacilities } from "../../mocks/facilities";
-import { mockAlerts } from "../../mocks/alerts";
 import { useRecentStore } from "../../store/recentStore";
+import { useAnomalies } from "../../hooks/useAnomalies";
+import { useFacilities } from "../../hooks/useFacilities";
 
 interface Props {
   open: boolean;
@@ -28,6 +27,8 @@ export function CommandPalette({ open, onClose }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const recent = useRecentStore((s) => s.anomalies);
+  const anomalies = useAnomalies().data ?? [];
+  const facilities = useFacilities().data ?? [];
 
   useEffect(() => {
     if (open) {
@@ -93,7 +94,7 @@ export function CommandPalette({ open, onClose }: Props) {
 
     // recent anomalies
     const recentCmds: Command[] = recent.slice(0, 3).map((id) => {
-      const a = mockAnomalies.find((x) => x.id === id);
+      const a = anomalies.find((x) => x.id === id);
       return {
         id: `recent-${id}`,
         label: `Recent: ${id} ${a ? `· ${a.classification.replace("_", " ")}` : ""}`,
@@ -108,7 +109,7 @@ export function CommandPalette({ open, onClose }: Props) {
     const searchCmds: Command[] = [];
     if (q.trim().length >= 2) {
       const qq = q.toLowerCase();
-      mockAnomalies
+      anomalies
         .filter((a) => `${a.id} ${a.classification} ${a.nearbyFacility?.name ?? ""}`.toLowerCase().includes(qq))
         .slice(0, 3)
         .forEach((a) => {
@@ -121,30 +122,17 @@ export function CommandPalette({ open, onClose }: Props) {
             keywords: `anomaly ${a.id}`,
           });
         });
-      mockFacilities
-        .filter((f) => `${f.id} ${f.name} ${f.type}`.toLowerCase().includes(qq))
+      facilities
+        .filter((f) => `${f.facility_id} ${f.name} ${f.facility_type ?? ""}`.toLowerCase().includes(qq))
         .slice(0, 2)
         .forEach((f) => {
           searchCmds.push({
-            id: `search-fac-${f.id}`,
+            id: `search-fac-${f.facility_id}`,
             label: `Facility ${f.name}`,
-            hint: f.id,
+            hint: String(f.facility_id),
             icon: Factory,
-            action: () => navigate(`/facilities?facility=${f.id}`),
+            action: () => navigate(`/facilities?facility=${f.facility_id}`),
             keywords: `facility ${f.name}`,
-          });
-        });
-      mockAlerts
-        .filter((al) => `${al.id} ${al.title}`.toLowerCase().includes(qq))
-        .slice(0, 2)
-        .forEach((al) => {
-          searchCmds.push({
-            id: `search-alert-${al.id}`,
-            label: `Alert ${al.id}`,
-            hint: al.severity,
-            icon: BellRing,
-            action: () => navigate(`/alerts?alert=${al.id}`),
-            keywords: `alert ${al.id}`,
           });
         });
     }
@@ -153,7 +141,7 @@ export function CommandPalette({ open, onClose }: Props) {
     if (!q.trim()) return all;
     const qq = q.toLowerCase();
     return all.filter((c) => `${c.label} ${c.hint ?? ""} ${c.keywords}`.toLowerCase().includes(qq));
-  }, [q, navigate, location.pathname, location.search, recent]);
+  }, [q, navigate, location.pathname, location.search, recent, anomalies, facilities]);
 
   useEffect(() => setIdx(0), [q]);
 

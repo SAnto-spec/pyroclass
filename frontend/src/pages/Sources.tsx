@@ -4,20 +4,21 @@ import { SourceTable } from "../components/sources/SourceTable";
 import { SourceDetailPanel } from "../components/sources/SourceDetailPanel";
 import { MapContainer } from "../components/map/MapContainer";
 import { StatsCard } from "../components/dashboard/StatsCard";
-import { mockSources } from "../mocks/sources";
+import { useSources } from "../hooks/useSources";
 import { Layers, Flame, Factory, Eye } from "lucide-react";
 
 export function Sources() {
+  const sources = useSources().data ?? [];
   const [filters, setFilters] = useState<SourceFiltersState>({
     search: "",
     classification: "all",
     persistenceLevel: "all",
     region: "all",
   });
-  const [selectedId, setSelectedId] = useState<string | null>(mockSources[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
-    return mockSources.filter((s) => {
+    return sources.filter((s) => {
       if (filters.search) {
         const q = filters.search.toLowerCase();
         const hay = `${s.id} ${s.classification} ${s.nearbyFacility?.name ?? ""} ${s.region}`.toLowerCase();
@@ -28,18 +29,18 @@ export function Sources() {
       if (filters.region !== "all" && s.region !== filters.region) return false;
       return true;
     });
-  }, [filters]);
+  }, [filters, sources]);
 
   const selected = useMemo(() => filtered.find((s) => s.id === selectedId) ?? filtered[0] ?? null, [filtered, selectedId]);
   const effectiveId = selected?.id ?? null;
 
   const metrics = useMemo(() => {
-    const total = mockSources.length;
-    const high = mockSources.filter((s) => s.persistenceLevel === "high").length;
-    const industrial = mockSources.filter((s) => s.classification === "industrial_fire").length;
-    const underInvestigation = mockSources.filter((s) => s.status === "under_investigation").length;
+    const total = sources.length;
+    const high = sources.filter((s) => s.persistenceLevel === "high").length;
+    const industrial = sources.filter((s) => s.classification === "industrial_fire").length;
+    const underInvestigation = sources.filter((s) => s.status === "under_investigation").length;
     return { total, high, industrial, underInvestigation };
-  }, []);
+  }, [sources]);
 
   return (
     <div className="space-y-4 px-3 py-4 sm:px-6 sm:py-6">
@@ -58,6 +59,13 @@ export function Sources() {
       </section>
 
       <SourceFilters filters={filters} onChange={setFilters} />
+
+      {sources.length === 0 && (
+        <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-6 py-10 text-center">
+          <p className="text-[13px] font-medium text-[var(--text-primary)]">No persistent sources available</p>
+          <p className="mt-1 text-[11px] text-[var(--text-muted)]">The backend does not currently provide a persistent-source feed.</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         <div className="min-w-0 xl:col-span-2">

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useUiStore } from "../../store/uiStore";
 import { useWatchlistStore } from "../../store/watchlistStore";
-import { mockFacilities } from "../../mocks/facilities";
+import { useFacilities } from "../../hooks/useFacilities";
 import { useNavigate } from "react-router-dom";
 
 interface NavItem {
@@ -35,7 +35,14 @@ export function Sidebar() {
   const navigate = useNavigate();
   const ids = useWatchlistStore((s) => s.ids);
   const remove = useWatchlistStore((s) => s.remove);
-  const watched = mockFacilities.filter((f) => ids.includes(f.id));
+  const facilities = useFacilities().data ?? [];
+  const watched = facilities
+    .map((facility) => ({
+      id: String(facility.facility_id),
+      name: facility.name,
+      type: facility.facility_type ?? "industrial",
+    }))
+    .filter((facility) => ids.includes(facility.id));
 
   return (
     <nav
@@ -147,7 +154,7 @@ export function Sidebar() {
         <div className="mt-4 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface-subtle)] px-2.5 py-2">
           <p className="text-[11px] font-medium text-[var(--text-primary)]">Context</p>
           <p className="mt-0.5 text-[11px] leading-relaxed text-[var(--text-muted)]">
-            VIIRS / SLSTR · mock dataset
+            VIIRS / SLSTR · backend feed
           </p>
           <div className="mt-1.5 flex items-center gap-1">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" aria-hidden="true" />

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { OctagonAlert, TriangleAlert, CircleAlert, MinusCircle, X, Clock3 } from "lucide-react";
 import type { Alert } from "../../types/alert";
-import { mockAlerts } from "../../mocks/alerts";
+import { useAlerts } from "../../hooks/useAlerts";
 
 interface Props {
   open: boolean;
@@ -26,9 +26,12 @@ function fmtAge(iso: string): string {
 
 export function NotificationsPopover({ open, onClose }: Props) {
   const navigate = useNavigate();
+  // Alert feed has no backend endpoint yet — the list is driven by the
+  // alerts service (empty until /alerts exists), never fabricated records.
+  const alerts = useAlerts().data ?? [];
   if (!open) return null;
 
-  const active = mockAlerts.filter((a) => a.status === "active");
+  const active = alerts.filter((a) => a.status === "active");
   const recent = [...active].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
 
   return (

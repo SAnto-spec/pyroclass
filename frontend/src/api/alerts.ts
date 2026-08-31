@@ -1,19 +1,20 @@
 import type { Alert, AlertSeverity, AlertStatus } from "../types/alert";
-import { mockAlerts } from "../mocks/alerts";
 
-// API abstraction — no backend endpoint yet (only /hotspots exists)
-// All mutations are local-mock with explicit pending/success/error wrapper
-// When backend adds /alerts, replace these fns with apiClient calls without changing UI
+// API abstraction — no backend endpoint yet (only /hotspots exists).
+// The backend does not provide /alerts, so the feed is empty rather than
+// fabricated. When backend adds /alerts, replace these fns with apiClient
+// calls without changing UI.
+// All mutations are local with explicit pending/success/error wrapper.
 
 export type AlertMutationResult = { ok: true } | { ok: false; error: string };
 
 export async function fetchAlerts(): Promise<Alert[]> {
   // Future: return (await apiClient.get<Alert[]>("/alerts")).data
-  return mockAlerts;
+  return [];
 }
 
-// Local mock state container — components should use useAlerts() hook instead of calling this directly
-let localAlerts: Alert[] = [...mockAlerts];
+// Local state container — components should use useAlerts() hook instead of calling this directly
+let localAlerts: Alert[] = [];
 
 export function getLocalAlerts(): Alert[] {
   return localAlerts;

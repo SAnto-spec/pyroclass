@@ -74,8 +74,10 @@ function mapPersistence(activeDays?: number | null): number {
   }
 
   // active_days is a count, not a percentage.
-  // Cap the display value at 100%.
-  return Math.min(100, activeDays);
+  // The UI contract is a 0–1 normalized score (display = score × 100),
+  // so saturate at 100 days (= 100%) and normalize into [0, 1].
+  // This keeps the real backend active_days value; e.g. 52 days → 0.52 → "52% persist".
+  return Math.min(100, activeDays) / 100;
 }
 
 async function getClassification(
@@ -118,7 +120,7 @@ async function getClassification(
  * Get real industrial facilities from PostgreSQL
  * through the FastAPI /facilities/ endpoint.
  *
- * This replaces mock facility data on the map.
+ * This provides backend facility data for the map.
  */
 export async function getFacilities(): Promise<BackendFacility[]> {
   return apiGet<BackendFacility[]>("/facilities/");

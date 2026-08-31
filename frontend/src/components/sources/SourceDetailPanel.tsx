@@ -24,7 +24,7 @@ export function SourceDetailPanel({ source, onClose }: Props) {
     return (
       <div className="rounded-md border border-slate-800 bg-slate-900 px-4 py-8 text-center">
         <p className="text-sm text-slate-400">Select a persistent source</p>
-        <p className="mt-1 text-xs text-slate-500">Timeline driven by mock data</p>
+        <p className="mt-1 text-xs text-slate-500">Timeline unavailable from the backend</p>
       </div>
     );
   }

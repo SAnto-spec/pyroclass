@@ -11,10 +11,9 @@ import { MapContainer } from "../components/map/MapContainer";
 import { useGlobalFilters } from "../hooks/useGlobalFilters";
 import { useAlertFilters } from "../hooks/useAlertFilters";
 import { useRecentStore } from "../store/recentStore";
+import { useAnomalies } from "../hooks/useAnomalies";
+import { useSources } from "../hooks/useSources";
 import { exportAlertsCsv } from "../lib/export";
-import { mockAlerts } from "../mocks/alerts";
-import { mockAnomalies } from "../mocks/anomalies";
-import { mockSources } from "../mocks/sources";
 import type { Alert } from "../types/alert";
 import type { BackendFacility, FacilityType, IndustrialFacility } from "../types/facility";
 import { getFacilities } from "../api/anomalies";
@@ -45,11 +44,12 @@ export function Alerts() {
   const { filters: global } = useGlobalFilters();
   const { filters: alertFilters } = useAlertFilters();
   const facilitiesQuery = useQuery({ queryKey: ["facilities"], queryFn: getFacilities, staleTime: 60000 });
+  const anomaliesQuery = useAnomalies();
+  const sourcesQuery = useSources();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [alerts, setAlerts] = useState<Alert[]>(mockAlerts);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
   const pushAlert = useRecentStore((s) => s.pushAlert);
-  const latestAlert = [...alerts].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
 
   const selectedAlertId = searchParams.get("alert");
   const [selectedId, setSelectedId] = useState<string | null>(selectedAlertId);
@@ -58,7 +58,8 @@ export function Alerts() {
     setSelectedId(selectedAlertId);
   }, [selectedAlertId]);
 
-  const anomalyById = useMemo(() => new Map(mockAnomalies.map((a) => [a.id, a])), []);
+  const anomalies = anomaliesQuery.data ?? [];
+  const anomalyById = useMemo(() => new Map(anomalies.map((anomaly) => [anomaly.id, anomaly])), [anomalies]);
   const facilities = facilitiesQuery.data ?? [];
   const facilityById = useMemo(() => new Map(facilities.map((facility) => {
     const display = toDisplayFacility(facility);
@@ -108,7 +109,7 @@ export function Alerts() {
   const filteredAnomaliesForMap = useMemo(() => {
     // map shows global-filtered anomalies (same as Overview) but highlight only filtered alerts' anomalies
     // For Alerts page, show all anomalies that pass global filter (so geographic context)
-    return mockAnomalies.filter((a) => {
+    return anomalies.filter((a) => {
       if (global.region !== "all" && a.region !== global.region) return false;
       if (global.conf !== "all" && a.confidence < parseInt(global.conf, 10)) return false;
       if (global.range !== "all") {
@@ -119,16 +120,15 @@ export function Alerts() {
       }
       return true;
     });
-  }, [global]);
+  }, [anomalies, global]);
 
   const filteredFacilities = useMemo(() => {
     return facilities;
   }, [facilities]);
 
   const filteredSources = useMemo(() => {
-    if (global.region === "all") return mockSources;
-    return mockSources.filter((s) => s.region === global.region);
-  }, [global]);
+    return sourcesQuery.data ?? [];
+  }, [sourcesQuery.data]);
 
   const selectAlert = useCallback(
     (id: string) => {
@@ -204,7 +204,8 @@ export function Alerts() {
       <GlobalContextBar />
       <SavedViewsBar />
       <div className="flex items-center justify-between">
-        <Freshness source="mock" timestamp={latestAlert?.createdAt} />
+        {/* No backend /alerts feed yet — show the real state instead of a mock freshness label */}
+        <Freshness source="unavailable" />
         <button onClick={() => exportAlertsCsv(filtered)} className="rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-2 py-1 text-[11px] font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-subtle)]">
           Export CSV ({filtered.length})
         </button>

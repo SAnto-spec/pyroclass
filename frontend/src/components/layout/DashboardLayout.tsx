@@ -5,7 +5,7 @@ import { Header } from "./Header";
 import { CommandPalette } from "./CommandPalette";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { useUiStore } from "../../store/uiStore";
-import { mockAlerts } from "../../mocks/alerts";
+import { useAlerts } from "../../hooks/useAlerts";
 
 const TITLE_MAP: Record<string, string> = {
   "/dashboard": "Overview",
@@ -36,7 +36,9 @@ export function DashboardLayout() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const lastFocusRef = useRef<HTMLElement | null>(null);
-  const activeAlerts = mockAlerts.filter((a) => a.status === "active").length;
+  // Alert feed has no backend endpoint yet — the badge reflects the alerts
+  // service (empty until /alerts exists), never fabricated records.
+  const activeAlerts = (useAlerts().data ?? []).filter((a) => a.status === "active").length;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

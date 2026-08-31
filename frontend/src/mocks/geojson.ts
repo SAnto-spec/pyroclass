@@ -1,9 +1,10 @@
 import type { ThermalAnomaly } from "../types/anomaly";
 import type { IndustrialFacility } from "../types/facility";
 import type { PersistentThermalSource } from "../types/source";
-import { mockAnomalies } from "./anomalies";
-import { mockFacilities } from "./facilities";
-import { mockSources } from "./sources";
+
+// GeoJSON converters are pure helpers: callers must always pass the real
+// data arrays explicitly. No mock defaults — an empty backend response
+// must produce an empty map layer, never silently-inserted mock records.
 
 type GeoPoint = { type: "Point"; coordinates: [number, number] };
 type GeoFeature<P> = { type: "Feature"; geometry: GeoPoint; properties: P };
@@ -41,7 +42,7 @@ export interface SourceProperties {
   region: string;
 }
 
-export function anomaliesToGeoJSON(anomalies: ThermalAnomaly[] = mockAnomalies): GeoFeatureCollection<AnomalyProperties> {
+export function anomaliesToGeoJSON(anomalies: ThermalAnomaly[]): GeoFeatureCollection<AnomalyProperties> {
   return {
     type: "FeatureCollection",
     features: anomalies.map(
@@ -65,7 +66,7 @@ export function anomaliesToGeoJSON(anomalies: ThermalAnomaly[] = mockAnomalies):
   };
 }
 
-export function facilitiesToGeoJSON(facilities: IndustrialFacility[] = mockFacilities): GeoFeatureCollection<FacilityProperties> {
+export function facilitiesToGeoJSON(facilities: IndustrialFacility[]): GeoFeatureCollection<FacilityProperties> {
   return {
     type: "FeatureCollection",
     features: facilities.map(
@@ -84,7 +85,7 @@ export function facilitiesToGeoJSON(facilities: IndustrialFacility[] = mockFacil
   };
 }
 
-export function sourcesToGeoJSON(sources: PersistentThermalSource[] = mockSources): GeoFeatureCollection<SourceProperties> {
+export function sourcesToGeoJSON(sources: PersistentThermalSource[]): GeoFeatureCollection<SourceProperties> {
   return {
     type: "FeatureCollection",
     features: sources.map(
