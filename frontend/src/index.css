@@ -1,21 +1,305 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-weak: var(--accent-weak);
+  --color-accent-border: var(--accent-border);
+  --color-critical: var(--critical);
+  --color-critical-weak: var(--critical-weak);
+  --color-critical-border: var(--critical-border);
+  --color-high: var(--high);
+  --color-high-weak: var(--high-weak);
+  --color-medium: var(--medium);
+  --color-medium-weak: var(--medium-weak);
+  --color-low: var(--low);
+  --color-success: var(--success);
+  --color-success-weak: var(--success-weak);
+  --color-focus: var(--focus);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* ────────────────────────────────
+   Semantic Design Tokens — Light Default
+   ──────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --background: #f6f7f9;          /* app canvas — warm neutral, not stark white */
+  --surface: #ffffff;             /* primary surface: cards, header, sidebar */
+  --surface-elevated: #ffffff;    /* elevated: drawers, modals, popovers */
+  --surface-subtle: #f8fafc;      /* subtle: table header, filter bar, hover */
+  --surface-hover: #f1f5f9;       /* hover state */
+
+  /* Borders */
+  --border: #e2e8f0;              /* default border */
+  --border-strong: #cbd5e1;       /* stronger divider */
+  --border-subtle: #f1f5f9;       /* inner dividers */
+
+  /* Text */
+  --text-primary: #0f172a;        /* slate-900 — headings, primary */
+  --text-secondary: #475569;      /* slate-600 — body, secondary */
+  --text-muted: #64748b;          /* slate-500 — metadata, labels */
+  --text-faint: #94a3b8;          /* slate-400 — disabled, placeholder */
+  --text-inverse: #ffffff;
+
+  /* Accent — thermal amber (operational, not decorative) */
+  --accent: #d97706;              /* amber-600 */
+  --accent-hover: #b45309;        /* amber-700 */
+  --accent-weak: #fffbeb;         /* amber-50 — selected row, badge bg */
+  --accent-border: #fde68a;       /* amber-200 — badge border */
+  --accent-muted: #92400e;        /* amber-800 — text on weak bg */
+
+  /* Severity — semantic, not color-only */
+  --critical: #dc2626;            /* red-600 */
+  --critical-weak: #fef2f2;       /* red-50 */
+  --critical-border: #fecaca;     /* red-200 */
+  --critical-text: #991b1b;
+
+  --high: #ea580c;                /* orange-600 */
+  --high-weak: #fff7ed;           /* orange-50 */
+  --high-border: #fed7aa;         /* orange-200 */
+  --high-text: #9a3412;
+
+  --medium: #a16207;              /* yellow-700 — darker for contrast on light */
+  --medium-weak: #fefce8;         /* yellow-50 */
+  --medium-border: #fde68a;       /* amber-200 */
+  --medium-text: #713f12;
+
+  --low: #64748b;                 /* slate-500 */
+  --low-weak: #f8fafc;            /* slate-50 */
+  --low-border: #e2e8f0;
+  --low-text: #475569;
+
+  --informational: #0284c7;       /* sky-600 */
+  --informational-weak: #f0f9ff;
+  --informational-border: #bae6fd;
+  --informational-text: #075985;
+
+  --success: #059669;             /* emerald-600 */
+  --success-weak: #ecfdf5;        /* emerald-50 */
+  --success-border: #a7f3d0;
+  --success-text: #065f46;
+
+  /* Focus */
+  --focus: #d97706;               /* accent for focus ring */
+  --focus-ring: rgba(217, 119, 6, 0.18);
+
+  /* Map — tuned for light OSM */
+  --map-border: #e2e8f0;
+  --map-control-bg: #ffffff;
+  --map-overlay-bg: rgba(255, 255, 255, 0.92);
+
+  /* Typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+
+  --text-page-title: 15px;
+  --text-section: 13px;
+  --text-body: 13px;
+  --text-meta: 12px;
+  --text-label: 11px;
+  --text-micro: 10px;
+
+  /* Spacing — density tuned */
+  --space-page-x: 24px;
+  --space-page-y: 20px;
+
+  /* Radius — restrained, not pill-heavy */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+
+  /* Shadow — minimal, only for elevated */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 2px 8px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+/* Dark theme placeholder — structured for later, no rewrite needed */
+[data-theme="dark"] {
+  --background: #020617;
+  --surface: #0f172a;
+  --surface-elevated: #1e293b;
+  --surface-subtle: #1e293b;
+  --surface-hover: #334155;
+  --border: #1e293b;
+  --border-strong: #334155;
+  --border-subtle: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-faint: #475569;
+  --map-overlay-bg: rgba(15, 23, 42, 0.86);
+  --map-control-bg: #1e293b;
+}
+
+/* ────────────────────────────────
+   Base
+   ──────────────────────────────── */
 html,
 body {
   height: 100%;
 }
 
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   margin: 0;
-  background: #020617;
-  color: #f1f5f9;
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-  -webkit-font-smoothing: antialiased;
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
   overflow-x: hidden;
 }
 
 #root {
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* Focus ring — consistent, accent-based */
+*:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-weak);
+  color: var(--text-primary);
+}
+
+/* Scrollbar — light, unobtrusive */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ────────────────────────────────
+   Typography Hierarchy
+   ──────────────────────────────── */
+.page-title {
+  font-size: var(--text-page-title);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.section-heading {
+  font-size: var(--text-section);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.body-text {
+  font-size: var(--text-body);
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.meta-text {
+  font-size: var(--text-meta);
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.label-text {
+  font-size: var(--text-label);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+.micro-label {
+  font-size: var(--text-micro);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.operational-data {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ────────────────────────────────
+   Map — light integration
+   ──────────────────────────────── */
+.maplibregl-ctrl-attrib {
+  font-size: 10px !important;
+  background: var(--map-overlay-bg) !important;
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px !important;
+}
+
+.maplibregl-ctrl-group {
+  background: var(--map-control-bg) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+}
+
+.maplibregl-ctrl-group button {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top: 1px solid var(--border) !important;
+}
+
+.thermal-popup .maplibregl-popup-content {
+  background: var(--surface-elevated) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-lg) !important;
+  padding: 10px 12px !important;
+  color: var(--text-primary) !important;
+}
+
+.thermal-popup .maplibregl-popup-tip {
+  border-top-color: var(--surface-elevated) !important;
+}
+
+/* ────────────────────────────────
+   Utilities for density
+   ──────────────────────────────── */
+.density-compact {
+  --density-py: 6px;
+  --density-px: 8px;
 }
