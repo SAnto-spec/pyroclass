@@ -22,6 +22,7 @@ import type { ThermalAnomaly } from "../../types/anomaly";
 import type { IndustrialFacility } from "../../types/facility";
 import type { PersistentThermalSource } from "../../types/source";
 import type { RiskAssessment } from "../../types/risk";
+import type { ArmaanAssessment } from "../../api/armaan";
 import { anomalySeverity } from "../../hooks/useInvestigationFilters";
 import { OctagonAlert, TriangleAlert, CircleAlert, MinusCircle } from "lucide-react";
 import { EvidencePanel } from "./EvidencePanel";
@@ -33,6 +34,8 @@ interface Props {
   source?: PersistentThermalSource | null;
   risk?: RiskAssessment | null;
   riskLoading?: boolean;
+  mlAssessment?: ArmaanAssessment | null;
+  mlAssessmentLoading?: boolean;
   open: boolean;
   onClose: () => void;
   onFacilityView?: (id: string) => void;
@@ -57,7 +60,7 @@ const severityCfg = {
 
 type Tab = "overview" | "history" | "facility" | "evidence" | "ground" | "actions";
 
-export function InvestigationDrawer({ anomaly, facility, source, risk, riskLoading = false, open, onClose, onFacilityView, onViewOnMap }: Props) {
+export function InvestigationDrawer({ anomaly, facility, source, risk, riskLoading = false, mlAssessment, mlAssessmentLoading = false, open, onClose, onFacilityView, onViewOnMap }: Props) {
   const [tab, setTab] = useState<Tab>("overview");
   const [copied, setCopied] = useState<string | null>(null);
   const [reviewed, setReviewed] = useState(false);
@@ -243,6 +246,44 @@ export function InvestigationDrawer({ anomaly, facility, source, risk, riskLoadi
                   </>
                 ) : (
                   <p className="mt-1 text-[11px] text-[var(--text-muted)]">Risk assessment unavailable for this hotspot.</p>
+                )}
+              </div>
+
+              <div className="rounded-[var(--radius-md)] border border-[var(--border)] bg-white px-3 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] tracking-[0.04em] text-[var(--text-faint)]">HISTORICAL ML ASSESSMENT</p>
+                  <span className="rounded-[4px] border border-[var(--border)] bg-[var(--surface-subtle)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--text-secondary)]">STAGE-4</span>
+                </div>
+                {mlAssessmentLoading ? (
+                  <p className="mt-1 text-[11px] text-[var(--text-muted)]">Loading historical Stage-4 assessment...</p>
+                ) : mlAssessment ? (
+                  <>
+                    <p className="mt-1 text-[13px] font-semibold text-[var(--text-primary)]">{mlAssessment.predicted_class_name}</p>
+                    <p className="text-[11px] text-[var(--text-muted)]">Confidence {mlAssessment.confidence.toFixed(2)}% · historical evidence only</p>
+                    <div className="mt-2 grid grid-cols-2 gap-2 text-center">
+                      {Object.entries(mlAssessment.probability_breakdown).map(([key, value]) => (
+                        <div key={key} className="rounded-[4px] border border-[var(--border)] bg-[var(--surface-subtle)] px-1.5 py-1.5">
+                          <p className="text-[10px] text-[var(--text-faint)]">{key}</p>
+                          <p className="text-[11px] font-semibold text-[var(--text-secondary)]">{value.toFixed(2)}%</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 space-y-1 text-[11px] text-[var(--text-muted)]">
+                      <p>
+                        Stage-4 observation: {(() => {
+                          const ts = mlAssessment.observation_datetime;
+                          if (!ts || ts === "unknown") return "Unknown";
+                          const parsed = new Date(ts);
+                          if (Number.isNaN(parsed.getTime())) return String(ts);
+                          return parsed.toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+                        })()}
+                      </p>
+                      <p>Spatial association distance: {mlAssessment.distance_km.toFixed(3)} km</p>
+                    </div>
+                    <p className="mt-2 text-[10px] uppercase tracking-[0.04em] text-[var(--text-faint)]">Historical / Stage-4 evidence · not the 2026 operational classification</p>
+                  </>
+                ) : (
+                  <p className="mt-1 text-[11px] text-[var(--text-muted)]">No historical Stage-4 assessment available for this hotspot.</p>
                 )}
               </div>
 

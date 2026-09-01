@@ -97,3 +97,13 @@ postgres_data/
 uploads/
 outputs/
 cache/
+
+# Armaan Stage-4 training dataset
+dataset/viirs-jpss1_2024_India_firms_stage4_pseudo_labelled.csv
+
+# Temporary Armaan integration test files
+armaan_matched_20.json
+armaan_test_features.json
+hotspots_current.json
+
+dataset/viirs-jpss1_2024_India_firms_stage4_pseudo_labelled.csv

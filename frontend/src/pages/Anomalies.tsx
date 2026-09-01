@@ -20,6 +20,7 @@ import { exportAnomaliesCsv, exportAnomaliesGeoJson } from "../lib/export";
 import { getRisk } from "../api/risk";
 import type { BackendFacility, FacilityStatus, FacilityType, IndustrialFacility } from "../types/facility";
 import { getFacilities } from "../api/anomalies";
+import { useArmaanAssessment } from "../hooks/useArmaanAssessment";
 
 const REFERENCE_NOW = new Date("2026-08-29T12:00:00Z").getTime();
 
@@ -113,6 +114,10 @@ export function Anomalies() {
     enabled: Boolean(selectedId && /^\d+$/.test(selectedId)),
     staleTime: 30000,
   });
+
+  const armaanAssessmentQuery = useArmaanAssessment(
+    selectedId && /^\d+$/.test(selectedId) ? Number(selectedId) : null,
+  );
 
   const selectedFacility = useMemo(() => {
     const nearbyName = selected?.nearbyFacility?.name;
@@ -226,7 +231,19 @@ export function Anomalies() {
           </div>
         </div>
       ) : (
-        <InvestigationDrawer anomaly={selected} facility={selectedFacility} source={linkedSource} risk={riskQuery.data ?? null} riskLoading={riskQuery.isLoading} open={Boolean(selected && !isNotFound)} onClose={closeDrawer} onFacilityView={() => { closeDrawer(); navigate(`/facilities${location.search}`); }} onViewOnMap={() => undefined} />
+        <InvestigationDrawer
+          anomaly={selected}
+          facility={selectedFacility}
+          source={linkedSource}
+          risk={riskQuery.data ?? null}
+          riskLoading={riskQuery.isLoading}
+          mlAssessment={armaanAssessmentQuery.data ?? null}
+          mlAssessmentLoading={armaanAssessmentQuery.isLoading}
+          open={Boolean(selected && !isNotFound)}
+          onClose={closeDrawer}
+          onFacilityView={() => { closeDrawer(); navigate(`/facilities${location.search}`); }}
+          onViewOnMap={() => undefined}
+        />
       )}
     </div>
   );

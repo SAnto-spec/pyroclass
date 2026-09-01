@@ -27,9 +27,10 @@ services:
       - "8000:8000"
     volumes:
       - ./dataset:/app/dataset
+      - ./model_artifacts:/app/model_artifacts
       - ./backend/ingestion:/app/ingestion
       - ./backend/ml:/app/ml
-      - ./backend/model_artifacts:/app/model_artifacts
+      - ./backend/model_artifacts:/app/backend_model_artifacts
     depends_on:
       - postgres
       - redis

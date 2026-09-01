@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from database.connection import get_connection
+from services.armaan_classifier import get_armaan_classifier
 
 
 router = APIRouter(prefix="/hotspots", tags=["Hotspots"])
@@ -503,3 +504,44 @@ def get_hotspot_features(hotspot_id: int):
         "hotspot_id": hotspot_id,
         "features": dict(zip(columns, row)),
     }
+
+
+@router.get("/{hotspot_id}/ml-assessment")
+def get_hotspot_ml_assessment(hotspot_id: int):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute(
+            "SELECT hotspot_id, latitude, longitude FROM hotspots WHERE hotspot_id = %s;",
+            (hotspot_id,),
+        )
+        row = cur.fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail=f"Hotspot {hotspot_id} not found")
+
+        hotspot_id_db, latitude, longitude = row
+        if latitude is None or longitude is None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Hotspot {hotspot_id} is missing latitude/longitude for Stage-4 association",
+            )
+
+        try:
+            classifier = get_armaan_classifier()
+            assessment = classifier.assess_hotspot(hotspot_id_db, float(latitude), float(longitude))
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=503, detail=f"Model unavailable: {exc}") from exc
+        except Exception as exc:
+            raise HTTPException(status_code=503, detail=f"Stage-4 model failed: {exc}") from exc
+
+        return assessment
+    finally:
+        cur.close()
+        conn.close()
