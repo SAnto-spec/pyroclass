@@ -50,7 +50,7 @@ export function AlertFilters({ filters, onChange }: Props) {
           <select value={filters.classification} onChange={(e) => update({ classification: e.target.value as AlertFiltersState["classification"] })} className={selectClass}>
             <option value="all">All</option>
             <option value="industrial_fire">Industrial Fire</option>
-            <option value="wildfire">Wildfire</option>
+            <option value="Vegetation Fire">Vegetation Fire</option>
             <option value="agricultural_burn">Agricultural Burn</option>
             <option value="gas_flare">Gas Flare</option>
             <option value="mining">Mining</option>

@@ -8,7 +8,7 @@ interface ClassificationSummaryProps {
 
 const CLASSIFICATIONS = [
   { key: "industrial_fire", label: "Industrial Fire" },
-  { key: "wildfire", label: "Wildfire" },
+  { key: "Vegetation Fire", label: "Vegetation Fire" },
   { key: "agricultural_burn", label: "Agricultural Burn" },
   { key: "gas_flare", label: "Gas Flare" },
   { key: "mining", label: "Mining" },

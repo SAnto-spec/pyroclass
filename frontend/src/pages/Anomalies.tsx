@@ -21,7 +21,7 @@ import { getRisk } from "../api/risk";
 import type { BackendFacility, FacilityStatus, FacilityType, IndustrialFacility } from "../types/facility";
 import { getFacilities } from "../api/anomalies";
 
-const REFERENCE_NOW = new Date("2026-08-29T12:00:00Z").getTime();
+const REFERENCE_NOW = new Date("2024-06-01T12:00:00Z").getTime();
 
 function normalizeFacilityType(value: string | null): FacilityType {
   const normalized = value?.trim().toLowerCase().replace(/\s+/g, "_");
@@ -207,8 +207,8 @@ export function Anomalies() {
             <span className="font-medium text-[var(--text-secondary)]">Visual encoding</span>
             <span className="hidden h-3 w-px bg-[var(--border)] sm:inline" aria-hidden="true" />
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border border-white bg-[var(--accent)] shadow-sm" /> Thermal</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border-2 border-[var(--accent)] bg-white" /> Facility</span>
-            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border border-sky-300 bg-[var(--accent)]/20" /> Persistent</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border border-amber-600 bg-slate-700 shadow-sm" /> Facility</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full border border-white bg-[var(--accent)]/50 shadow-sm" /> Persistent</span>
             <span className="ml-auto hidden text-[10px] text-[var(--text-faint)] sm:inline">Click row or map marker to investigate</span>
           </div>
         </div>

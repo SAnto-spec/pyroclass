@@ -1,5 +1,6 @@
 import os
 import requests
+import time
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
@@ -13,71 +14,54 @@ DB_PORT = os.getenv("DB_PORT", "5432")
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
-# All of India (approximate bounding box):
-# south, west, north, east
-BBOXES = [
-    "22,68,35.5,88", # North
-    "6.7,72,22,85",  # South
-    "20,85,29,97.4", # East
-    "15,68,28.5,78", # West (overlap, but that's fine)
-]
-
-def fetch_osm_facilities():
-    all_elements = []
-    
-    for bbox in BBOXES:
-        print(f"Fetching bbox {bbox}...")
-        query = f"""
-        [out:json][timeout:180];
-
-        (
-          nwr["landuse"="industrial"]({bbox});
-          nwr["landuse"="quarry"]({bbox});
-          nwr["man_made"="works"]({bbox});
-          nwr["industrial"]({bbox});
-          nwr["power"="plant"]({bbox});
-          nwr["man_made"="mineshaft"]({bbox});
-        );
-
-        out center tags;
-        """
-
-        headers = {
-            "User-Agent": "PyroClass/1.0",
-            "Accept": "application/json",
-            "Content-Type": "application/x-www-form-urlencoded",
-        }
-
-        response = requests.post(
-            OVERPASS_URL,
-            data={"data": query},
-            headers=headers,
-            timeout=190,
-        )
-
-        response.raise_for_status()
-        all_elements.extend(response.json()["elements"])
-        
-    return all_elements
-
 def get_engine():
     return create_engine(
         f"postgresql://{DB_USER}:{DB_PASS}@"
         f"{DB_HOST}:{DB_PORT}/{DB_NAME}"
     )
 
+def fetch_osm_facilities(lat, lon):
+    query = f"""
+    [out:json][timeout:90];
+
+    (
+      way["landuse"="industrial"](around:30000,{lat},{lon});
+      way["landuse"="quarry"](around:30000,{lat},{lon});
+      way["man_made"="works"](around:30000,{lat},{lon});
+      node["man_made"="works"](around:30000,{lat},{lon});
+      way["industrial"](around:30000,{lat},{lon});
+      node["industrial"](around:30000,{lat},{lon});
+      way["power"="plant"](around:30000,{lat},{lon});
+      node["power"="plant"](around:30000,{lat},{lon});
+      node["man_made"="mineshaft"](around:30000,{lat},{lon});
+    );
+
+    out center tags;
+    """
+
+    headers = {
+        "User-Agent": "PyroClass/1.0",
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+
+    response = requests.post(
+        OVERPASS_URL,
+        data={"data": query},
+        headers=headers,
+        timeout=100,
+    )
+
+    response.raise_for_status()
+    return response.json()["elements"]
 
 def get_coordinates(element):
     if element["type"] == "node":
         return element.get("lat"), element.get("lon")
-
     center = element.get("center")
-
     if center:
         return center.get("lat"), center.get("lon")
-
     return None, None
-
 
 def classify_facility(tags):
     industrial = tags.get("industrial", "").lower()
@@ -87,43 +71,30 @@ def classify_facility(tags):
 
     if industrial == "refinery" or industrial in {"oil", "petrochemical"}:
         return "refinery"
-
     if industrial == "steelworks" or industrial in {"steel", "metal"}:
-        return "steel"
-
+        return "steel_plant"
     if industrial == "gas" or "lng" in industrial:
         return "lng_terminal"
-
     if industrial == "cement":
         return "cement"
-
     if industrial == "chemical" or "fertilizer" in industrial:
         return "chemical"
-
     if power == "plant":
         return "power_plant"
-        
     if landuse == "quarry" or man_made == "mineshaft" or "mine" in industrial:
-        return "mining_quarry"
-
+        return "mine"
     return "industrial"
-
 
 def insert_facilities(elements, engine):
     inserted = 0
-
     with engine.begin() as conn:
         for element in elements:
             tags = element.get("tags", {})
-
             name = tags.get("name")
-
-            # Ignore unnamed OSM objects.
             if not name:
                 continue
 
             latitude, longitude = get_coordinates(element)
-
             if latitude is None or longitude is None:
                 continue
 
@@ -131,12 +102,7 @@ def insert_facilities(elements, engine):
             facility_type = classify_facility(tags)
 
             existing = conn.execute(
-                text("""
-                    SELECT 1
-                    FROM industrial_facilities
-                    WHERE osm_id = :osm_id
-                    LIMIT 1;
-                """),
+                text("SELECT 1 FROM industrial_facilities WHERE osm_id = :osm_id LIMIT 1"),
                 {"osm_id": osm_id},
             ).fetchone()
 
@@ -146,31 +112,14 @@ def insert_facilities(elements, engine):
             conn.execute(
                 text("""
                     INSERT INTO industrial_facilities (
-                        name,
-                        facility_type,
-                        latitude,
-                        longitude,
-                        geometry,
-                        osm_id,
-                        operator,
-                        source
+                        name, facility_type, latitude, longitude,
+                        geometry, osm_id, operator, source
                     )
                     VALUES (
-                        :name,
-                        :facility_type,
-                        :latitude,
-                        :longitude,
-                        ST_SetSRID(
-                            ST_MakePoint(
-                                :longitude,
-                                :latitude
-                            ),
-                            4326
-                        ),
-                        :osm_id,
-                        :operator,
-                        'OSM'
-                    );
+                        :name, :facility_type, :latitude, :longitude,
+                        ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326),
+                        :osm_id, :operator, 'OSM'
+                    )
                 """),
                 {
                     "name": name,
@@ -181,11 +130,8 @@ def insert_facilities(elements, engine):
                     "operator": tags.get("operator"),
                 },
             )
-
             inserted += 1
-
     return inserted
-
 
 def rematch_hotspots(engine):
     with engine.begin() as conn:
@@ -199,29 +145,20 @@ def rematch_hotspots(engine):
                     specific_facility_identified = true
                 FROM (
                     SELECT
-                        h2.hotspot_id,
-                        f.name,
-                        f.facility_type,
-                        ST_Distance(
-                            h2.geometry::geography,
-                            f.geometry::geography
-                        ) AS distance_m
+                        h2.hotspot_id, f.name, f.facility_type,
+                        ST_Distance(h2.geometry::geography, f.geometry::geography) AS distance_m
                     FROM hotspots h2
                     JOIN LATERAL (
-                        SELECT
-                            f.name,
-                            f.facility_type,
-                            f.geometry
+                        SELECT f.name, f.facility_type, f.geometry
                         FROM industrial_facilities f
                         WHERE ST_DWithin(
-                            h2.geometry::geography,
-                            f.geometry::geography,
+                            h2.geometry::geography, f.geometry::geography,
                             CASE f.facility_type
                                 WHEN 'refinery' THEN 5000
-                                WHEN 'steel' THEN 4000
+                                WHEN 'steel_plant' THEN 4000
                                 WHEN 'power_plant' THEN 3000
                                 WHEN 'lng_terminal' THEN 1500
-                                WHEN 'mining_quarry' THEN 3000
+                                WHEN 'mine' THEN 3000
                                 ELSE 2000
                             END
                         )
@@ -232,40 +169,44 @@ def rematch_hotspots(engine):
                 WHERE h.hotspot_id = nearest.hotspot_id;
             """)
         )
-
         return result.rowcount
 
-
 def main():
-    print("Fetching real OSM facilities for Western India...")
-
-    elements = fetch_osm_facilities()
-
-    print(f"Received {len(elements)} OSM objects")
-
     engine = get_engine()
-
-    inserted = insert_facilities(
-        elements,
-        engine,
-    )
-
-    print(f"Inserted {inserted} new OSM facilities")
-
-    matched = rematch_hotspots(engine)
-
-    print(f"Matched {matched} hotspots to facilities")
-
+    print("Finding clusters of hotspots...")
+    
     with engine.connect() as conn:
-        count = conn.execute(
-            text("""
-                SELECT COUNT(*)
-                FROM industrial_facilities;
-            """)
-        ).scalar()
+        # Group hotspots into roughly 50km grid cells (0.5 degrees)
+        rows = conn.execute(text("""
+            SELECT 
+                ROUND(AVG(latitude)::numeric * 2) / 2 as lat,
+                ROUND(AVG(longitude)::numeric * 2) / 2 as lon
+            FROM hotspots
+            GROUP BY ROUND(latitude::numeric * 2), ROUND(longitude::numeric * 2)
+        """)).fetchall()
 
-    print(f"Total facilities in database: {count}")
-
+    print(f"Found {len(rows)} distinct hotspot clusters.")
+    
+    total_elements = []
+    for idx, (lat, lon) in enumerate(rows):
+        print(f"Fetching cluster {idx+1}/{len(rows)}: ({lat}, {lon})")
+        
+        for attempt in range(3):
+            try:
+                elements = fetch_osm_facilities(lat, lon)
+                total_elements.extend(elements)
+                break
+            except Exception as e:
+                print(f"Attempt {attempt+1} failed: {e}")
+                time.sleep(5)
+                
+        time.sleep(0.5)
+        
+    print(f"Received {len(total_elements)} total OSM objects")
+    inserted = insert_facilities(total_elements, engine)
+    print(f"Inserted {inserted} new OSM facilities")
+    matched = rematch_hotspots(engine)
+    print(f"Matched {matched} hotspots to facilities")
 
 if __name__ == "__main__":
     main()

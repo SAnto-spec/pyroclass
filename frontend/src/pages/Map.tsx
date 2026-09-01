@@ -18,7 +18,7 @@ import { getFacilities } from "../api/anomalies";
 import type { BackendFacility } from "../types/facility";
 import * as maplibregl from "maplibre-gl";
 
-const REFERENCE_NOW = new Date("2026-08-29T12:00:00Z").getTime();
+const REFERENCE_NOW = new Date("2024-06-01T12:00:00Z").getTime();
 
 export function MapPage() {
   const { filters: global } = useGlobalFilters();

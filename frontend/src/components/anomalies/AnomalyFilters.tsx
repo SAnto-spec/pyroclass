@@ -7,7 +7,7 @@ const CLASSIFICATION_OPTIONS: {
 }[] = [
   { value: "all", label: "All" },
   { value: "industrial_fire", label: "Industrial Fire" },
-  { value: "wildfire", label: "Wildfire" },
+  { value: "Vegetation Fire", label: "Vegetation Fire" },
   { value: "agricultural_burn", label: "Agricultural Burn" },
   { value: "gas_flare", label: "Gas Flare" },
   { value: "mining", label: "Mining" },

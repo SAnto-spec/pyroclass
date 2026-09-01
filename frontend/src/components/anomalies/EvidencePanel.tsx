@@ -10,7 +10,7 @@ import { partitionReports } from "../../lib/association";
 
 const CLASS_LABEL: Record<string, string> = {
   industrial_fire: "Industrial Fire",
-  wildfire: "Wildfire",
+  wildfire: "Vegetation Fire",
   agricultural_burn: "Agricultural Burn",
   gas_flare: "Gas Flare",
   mining: "Mining",
@@ -127,7 +127,7 @@ export function EvidencePanel({ anomaly, reports, groundSummary, facility, sourc
   // Context derivation (mock, from facility + anomaly)
   const hasIndustrial = !!facility || anomaly.nearbyFacility != null || anomaly.classification === "industrial_fire" || anomaly.classification === "gas_flare";
   const hasMining = facility?.type === "mine" || anomaly.classification === "mining";
-  const isForest = anomaly.classification === "wildfire";
+  const isForest = anomaly.classification === "Vegetation Fire";
   const isAgri = anomaly.classification === "agricultural_burn";
   const osmEvidence = hasIndustrial
     ? `OSM landuse=industrial · ${facility?.name ?? anomaly.nearbyFacility?.name ?? "industrial polygon"} · ${facility ? `${facility.type.replace("_", " ")} within ${(anomaly.nearbyFacility?.distanceKm ?? 1.2).toFixed(1)} km` : "proximity inferred"}`

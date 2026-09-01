@@ -69,7 +69,7 @@ export function AlertFilterBar({ filteredCount, totalCount }: Props) {
           >
             <option value="all">All</option>
             <option value="industrial_fire">Industrial Fire</option>
-            <option value="wildfire">Wildfire</option>
+            <option value="Vegetation Fire">Vegetation Fire</option>
             <option value="agricultural_burn">Agricultural Burn</option>
             <option value="gas_flare">Gas Flare</option>
             <option value="mining">Mining</option>

@@ -59,7 +59,7 @@ function getSeverity(item: RecentAlertItem): "critical" | "high" | "medium" | "l
 function getClassificationLabel(classification: ThermalAnomaly["classification"]): string {
   switch (classification) {
     case "industrial_fire": return "Industrial Fire";
-    case "wildfire": return "Wildfire";
+    case "Vegetation Fire": return "Vegetation Fire";
     case "agricultural_burn": return "Agricultural Burn";
     case "gas_flare": return "Gas Flare";
     case "mining": return "Mining";

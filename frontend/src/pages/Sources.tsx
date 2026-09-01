@@ -45,14 +45,14 @@ export function Sources() {
   return (
     <div className="space-y-4 px-3 py-4 sm:px-6 sm:py-6">
       <div>
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400">Persistent Sources</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400">Persistent Industrial Heat</h2>
         <p className="mt-1 max-w-3xl text-sm leading-relaxed text-slate-500">
           Locations where thermal activity repeatedly occurs over time. High persistence sources are prioritized for facility correlation.
         </p>
       </div>
 
       <section aria-label="Summary metrics" className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatsCard label="Persistent Sources" value={metrics.total} subtext="All monitored locations" icon={Layers} />
+        <StatsCard label="Persistent Industrial Heat" value={metrics.total} subtext="All monitored locations" icon={Layers} />
         <StatsCard label="High Persistence" value={metrics.high} subtext="Score ≥70% · priority review" icon={Flame} />
         <StatsCard label="Industrial" value={metrics.industrial} subtext="Industrial fire classification" icon={Factory} />
         <StatsCard label="Under Investigation" value={metrics.underInvestigation} subtext="Awaiting verification" icon={Eye} />

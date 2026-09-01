@@ -16,7 +16,7 @@ import { useCommunityStore } from "../store/communityStore";
 import type { BackendFacility } from "../types/facility";
 import type { ThermalAnomaly } from "../types/anomaly";
 
-const REFERENCE_NOW = new Date("2026-08-29T12:00:00Z").getTime();
+const REFERENCE_NOW = new Date("2024-06-01T12:00:00Z").getTime();
 
 function daysAgo(iso: string): number {
   return (REFERENCE_NOW - new Date(iso).getTime()) / (1000 * 60 * 60 * 24);
@@ -119,7 +119,7 @@ export function Dashboard() {
         <h2 id="stats-heading" className="sr-only">Key statistics</h2>
         <StatsCard label="Total Thermal Anomalies" value={metrics.total} subtext="Current monitored detections" icon={Flame} />
         <StatsCard label="Industrial Fires" value={metrics.industrial} subtext="ML classified industrial fires" icon={Factory} />
-        <StatsCard label="Persistent Sources" value={metrics.persistent} subtext="7+ days of activity" icon={Layers} />
+        <StatsCard label="Persistent Industrial Heat" value={metrics.persistent} subtext="7+ days of activity" icon={Layers} />
         <StatsCard label="Active Alerts" value={metrics.active} subtext="High/critical priority" icon={BellRing} href="/alerts" />
       </section>
 

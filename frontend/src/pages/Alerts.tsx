@@ -38,7 +38,7 @@ function toDisplayFacility(facility: BackendFacility): IndustrialFacility {
   };
 }
 
-const REFERENCE_NOW = new Date("2026-08-29T12:00:00Z").getTime();
+const REFERENCE_NOW = new Date("2024-06-01T12:00:00Z").getTime();
 
 export function Alerts() {
   const { filters: global } = useGlobalFilters();

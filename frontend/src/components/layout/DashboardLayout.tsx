@@ -13,7 +13,7 @@ const TITLE_MAP: Record<string, string> = {
   "/reports": "Ground Reports",
   "/ground-reports": "Ground Reports",
   "/facilities": "Facilities",
-  "/sources": "Persistent Sources",
+  "/sources": "Persistent Industrial Heat",
   "/alerts": "Alerts",
   "/map": "Map",
 };

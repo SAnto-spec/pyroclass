@@ -232,7 +232,7 @@ export function Facilities() {
           <FacilityList facilities={filtered} selectedId={effectiveSelectedId} onSelect={handleSelect} />
         </div>
         <div className="order-2 flex min-w-0 flex-col gap-4 xl:order-2">
-          <MapContainer facilities={facilities} selectedFacilityId={effectiveSelectedId} onFacilitySelect={handleSelect} />
+          <MapContainer facilities={facilities.filter((f) => filtered.some((ff) => ff.id === String(f.facility_id)))} selectedFacilityId={effectiveSelectedId} onFacilitySelect={handleSelect} />
           <FacilityDetailPanel
             facility={selected ?? null}
             anomalyCount={selected ? (anomaliesByFacility.get(selected.id)?.length ?? 0) : 0}

@@ -3,7 +3,7 @@ import type { PersistentThermalSource } from "../../types/source";
 
 const CLASS_LABEL: Record<string, string> = {
   industrial_fire: "Industrial Fire",
-  wildfire: "Wildfire",
+  wildfire: "Vegetation Fire",
   agricultural_burn: "Agricultural Burn",
   gas_flare: "Gas Flare",
   mining: "Mining",
