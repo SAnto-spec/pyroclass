@@ -129,15 +129,7 @@ export async function getFacilities(): Promise<BackendFacility[]> {
 export async function getAnomalies(): Promise<ThermalAnomaly[]> {
   const hotspots = await apiGet<BackendHotspot[]>("/hotspots/");
 
-  const classifications = await Promise.all(
-    hotspots.map((hotspot) =>
-      getClassification(hotspot.hotspot_id)
-    )
-  );
-
-  return hotspots.map((hotspot, index) => {
-    const classification = classifications[index];
-
+  return hotspots.map((hotspot) => {
     return {
       id: String(hotspot.hotspot_id),
 
@@ -152,14 +144,12 @@ export async function getAnomalies(): Promise<ThermalAnomaly[]> {
 
       brightness: hotspot.bright_ti4 ?? 0,
 
-      // ML classification confidence is stored as 0–1.
-      // Convert to frontend percentage 0–100.
-      confidence: classification
-        ? classification.confidence * 100
-        : hotspot.confidence ?? 0,
+      confidence: hotspot.confidence != null 
+          ? (hotspot.confidence <= 1 ? hotspot.confidence * 100 : hotspot.confidence) 
+          : 0,
 
       classification: mapClassification(
-        classification?.predicted_class ?? hotspot.case_type
+        hotspot.case_type
       ),
 
       persistenceScore: mapPersistence(
@@ -182,9 +172,9 @@ export async function getAnomalies(): Promise<ThermalAnomaly[]> {
       region: "India",
 
       status:
-        classification?.priority_level === "critical"
+        (hotspot as any).priority_level === "critical"
           ? "active"
-          : classification?.priority_level === "high"
+          : (hotspot as any).priority_level === "high"
             ? "active"
             : "review",
     };

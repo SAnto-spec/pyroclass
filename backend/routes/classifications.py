@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from typing import Any, Dict
 from database.connection import get_connection
 from ml.features import build_features
-from ml.inference import inference
+from ml.inference import inference, CLASS_API_NAMES
 import json
 
 
@@ -18,13 +18,23 @@ def calculate_anomaly_score(result: Dict[str, Any]) -> float:
 
 def calculate_priority(confidence: float, predicted_class: str) -> str:
     """
-    Map model confidence to the existing priority field.
+    Map model confidence and class to priority.
+    non_industrial should never be critical.
     """
+    if predicted_class == "non_industrial":
+        return "low"
+        
+    if predicted_class == "forest_fire":
+        if confidence >= 0.90:
+            return "critical"
+        if confidence >= 0.75:
+            return "high"
+        return "medium"
+
+    # Industrial anomalies
     if confidence >= 0.90:
-        return "critical"
-    if confidence >= 0.75:
         return "high"
-    if confidence >= 0.50:
+    if confidence >= 0.75:
         return "medium"
     return "low"
 
@@ -100,17 +110,50 @@ def create_classification(hotspot_id: int):
                 latitude,
                 longitude,
                 timestamp,
-                frp,
                 bright_ti4,
                 bright_ti5,
-                confidence,
-                daynight,
-                industrial_context_score,
-                mining_context_score,
-                industrial_polygon_overlap_osm,
-                mining_polygon_overlap,
-                forest_polygon_overlap,
-                agriculture_polygon_overlap
+                scan,
+                track,
+                frp,
+                acq_hour,
+                thermal_difference,
+                thermal_ratio,
+                pixel_area,
+                frp_per_pixel_area,
+                detections_7d,
+                detections_30d,
+                active_days_90d,
+                active_day_ratio_90d,
+                frp_mean_90d,
+                frp_ratio_to_90d_mean,
+                time_since_previous_detection,
+                distance_to_refinery,
+                refinery_within_1km,
+                refinery_within_5km,
+                distance_to_power_plant,
+                power_plant_within_1km,
+                power_plant_within_5km,
+                distance_to_industrial_works,
+                industrial_works_within_1km,
+                industrial_works_within_5km,
+                distance_to_industrial_area,
+                industrial_area_within_1km,
+                industrial_area_within_5km,
+                distance_to_quarry,
+                quarry_within_1km,
+                quarry_within_5km,
+                distance_to_mine,
+                mine_within_1km,
+                mine_within_5km,
+                distance_to_nearest_industrial,
+                industrial_within_1km,
+                industrial_within_5km,
+                distance_to_forest,
+                forest_within_1km,
+                forest_within_5km,
+                distance_to_farmland,
+                farmland_within_1km,
+                farmland_within_5km
             FROM hotspots
             WHERE hotspot_id = %s;
             """,
@@ -130,41 +173,58 @@ def create_classification(hotspot_id: int):
             "latitude",
             "longitude",
             "timestamp",
-            "frp",
             "bright_ti4",
             "bright_ti5",
-            "confidence",
-            "daynight",
-            "industrial_context_score",
-            "mining_context_score",
-            "industrial_polygon_overlap_osm",
-            "mining_polygon_overlap",
-            "forest_polygon_overlap",
-            "agriculture_polygon_overlap",
+            "scan",
+            "track",
+            "frp",
+            "acq_hour",
+            "thermal_difference",
+            "thermal_ratio",
+            "pixel_area",
+            "frp_per_pixel_area",
+            "detections_7d",
+            "detections_30d",
+            "active_days_90d",
+            "active_day_ratio_90d",
+            "frp_mean_90d",
+            "frp_ratio_to_90d_mean",
+            "time_since_previous_detection",
+            "distance_to_refinery",
+            "refinery_within_1km",
+            "refinery_within_5km",
+            "distance_to_power_plant",
+            "power_plant_within_1km",
+            "power_plant_within_5km",
+            "distance_to_industrial_works",
+            "industrial_works_within_1km",
+            "industrial_works_within_5km",
+            "distance_to_industrial_area",
+            "industrial_area_within_1km",
+            "industrial_area_within_5km",
+            "distance_to_quarry",
+            "quarry_within_1km",
+            "quarry_within_5km",
+            "distance_to_mine",
+            "mine_within_1km",
+            "mine_within_5km",
+            "distance_to_nearest_industrial",
+            "industrial_within_1km",
+            "industrial_within_5km",
+            "distance_to_forest",
+            "forest_within_1km",
+            "forest_within_5km",
+            "distance_to_farmland",
+            "farmland_within_1km",
+            "farmland_within_5km"
         ]
 
         hotspot = dict(zip(columns, row))
 
         # ---------------------------------------------------------------
-        # 2. Build the 55 model features
+        # 2. Build the 48 model features
         # ---------------------------------------------------------------
         features = build_features(hotspot)
-
-        # Safety check before inference
-        missing = [
-            name
-            for name in inference.feature_names
-            if name not in features
-        ]
-
-        if missing:
-            raise HTTPException(
-                status_code=500,
-                detail={
-                    "error": "Missing model features",
-                    "missing": missing,
-                },
-            )
 
         # ---------------------------------------------------------------
         # 3. Run XGBoost
@@ -200,6 +260,34 @@ def create_classification(hotspot_id: int):
             "unknown",
         )
 
+        # Get SHAP explanations if available
+        top_explanatory_features = []
+        if hasattr(inference, 'shap_explainer') and inference.shap_explainer:
+            import pandas as pd
+            import numpy as np
+            row_df = pd.DataFrame(
+                [[float(features.get(name, 0.0)) for name in inference.feature_names]],
+                columns=inference.feature_names
+            )
+            shap_values = inference.shap_explainer(row_df)
+            
+            # Use the values for the predicted class
+            predicted_idx = list(CLASS_API_NAMES.values()).index(predicted_class) if predicted_class in CLASS_API_NAMES.values() else 0
+            # Depending on SHAP version, shap_values might be a list (per class) or a 3D array
+            if isinstance(shap_values.values, list):
+                class_shap = shap_values.values[predicted_idx][0]
+            elif len(shap_values.values.shape) == 3:
+                class_shap = shap_values.values[0, :, predicted_idx]
+            else:
+                class_shap = shap_values.values[0]
+
+            feature_importance = [
+                {"feature": fname, "importance": float(val), "value": float(row_df[fname].iloc[0])}
+                for fname, val in zip(inference.feature_names, class_shap)
+            ]
+            feature_importance.sort(key=lambda x: abs(x["importance"]), reverse=True)
+            top_explanatory_features = feature_importance[:5]
+
         # ---------------------------------------------------------------
         # 4. Store classification
         # ---------------------------------------------------------------
@@ -234,7 +322,7 @@ def create_classification(hotspot_id: int):
                 priority_level,
                 unknown_reason,
                 feature_version,
-                json.dumps([]),
+                json.dumps(top_explanatory_features),
             ),
         )
 
@@ -253,7 +341,7 @@ def create_classification(hotspot_id: int):
             "unknown_reason": unknown_reason,
             "model_version": model_version,
             "feature_version": feature_version,
-            "top_explanatory_features": [],
+            "top_explanatory_features": top_explanatory_features,
         }
 
     except HTTPException:
